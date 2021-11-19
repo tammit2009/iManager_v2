@@ -1,0 +1,202 @@
+/* html, body {
+    margin: 0px;
+    padding: 0px;
+    font-family: Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: rgb(236, 235, 235);
+}
+
+h1 {
+    margin: 0px 0px 8px 0px;
+    padding: 0px;
+    font-size: 26px;
+}
+
+a:link, a:visited {
+    text-decoration: underline;
+    color: #333;
+}
+
+a:hover, a:active {
+    text-decoration: none;
+}
+
+a:active {
+    color: #666;
+}
+
+form div {
+    margin: 4px 0px 0px 0px;
+}
+
+form div label {
+    display: block;
+    font-size: 14px;
+}
+
+#wrap {
+    margin: 100px auto;
+    padding: 10px;
+    width: 800px;
+    background: #fff;
+    border: solid 1px #000;
+
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+
+    box-shadow: 0px 0px 10px 0px #000;
+    -moz-box-shadow: 0px 0px 10px 0px #000;
+    -webkit-box-shadow: 0px 0px 10px 0px #000;
+}
+
+
+
+div.conversations div, div.messages div {
+    margin: 10px 0px 0px 0px;
+    padding: 4px;
+    background: #eee;
+    border: solid 1px #ccc;
+}
+
+div.conversations div h2, div.messages div p {
+    padding: 0px;
+}
+
+div.conversations div h2 {
+    margin: 0px 0px 2px 0px;
+    font-weight: normal;
+}
+
+div.conversations div.unread h2 {
+    font-weight: bold;
+}
+
+div.conversations div.p {
+    margin: 4px 0px 0px 0px;
+}
+
+div.messages div p {
+    padding: 2px;
+}
+
+div.messages div p.name {
+    font-weight: normal;
+}
+
+div.messages div.unread p.name {
+    font-weight: bold;
+}
+
+div.messages div p.text {
+    margin: 0px 0px 0px 10px;
+} */
+
+div.msg {
+    margin: 10px 0px 15px 0px;
+    padding: 8px;
+
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
+.error {
+    font-size: 14px;
+    border: solid 1px #900;
+    background: -o-linear-gradient(top, rgba(255,238,238,1), rgba(255,215,215,1));
+    background: -moz-linear-gradient(top, rgba(255,238,238,1), rgba(255,215,215,1));
+    background: -webkit-linear-gradient(top, rgba(255,238,238,1), rgba(255,215,215,1));
+}
+
+div.success {
+    border: solid 1px #090;
+    background: -o-linear-gradient(top, rgb(238, 255, 238, 1), rgba(208,255,208,1));
+    background: -moz-linear-gradient(top, rgba(238, 255, 238, 1), rgba(208,255,208,1));
+    background: -webkit-linear-gradient(top, rgba(238, 255, 238, 1), rgba(208,255,208,1));
+}
+
+.conversation {
+    /* background-color: red; */
+}
+
+
+/* conversation-message-o */
+
+.conversation-message-o {
+    /* background-color: blue; */
+}
+
+.conversation-message-o .message-details {
+    width: 90%;
+}
+
+.conversation-message-o .message-details .message-text {
+    margin-right: 15px;
+    padding: 15px;
+    background: #17A2B8;
+    border-radius: 3px;
+    font-size: 14px;
+    color: #fff;
+}
+
+.conversation-message-o .message-details .message-text.unread {
+    font-weight: bold;
+}
+
+.conversation-message-o .message-details .message-date {
+    font-size: 12px; 
+    float: right;
+    margin-right: 15px;
+}
+
+.conversation-message-o .message-from img {
+    display: block;
+    margin: 0 auto;
+    width: 48px; 
+    height: 48px; 
+}
+
+.conversation-message-o .message-from .message-uid {
+    font-size: 12px;
+    text-align: center;
+}
+
+/* conversation-message */
+
+.conversation-message {
+    /* background-color: green; */
+}
+
+.conversation-message .message-details {
+    width: 90%;
+}
+
+.conversation-message .message-details .message-text {
+    padding: 15px; 
+    background: #F3F3F3;
+    border-radius: 3px;
+    font-size:14px;
+}
+
+.conversation-message .message-details .message-text.unread {
+    font-weight: bold;
+}
+
+.conversation-message .message-details .message-date {
+    font-size:12px;
+}
+
+.conversation-message .message-from img {
+    display: block; 
+    margin: 0 auto;
+    width: 48px; 
+    height: 48px; 
+}
+
+.conversation-message .message-from .message-uid {
+    font-size: 12px;
+    text-align: center
+}

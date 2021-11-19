@@ -1,0 +1,266 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+.table_wrap {
+    font-size: 13px;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.table_wrap ul {
+    list-style: none;
+    padding-inline-start: 0;
+}
+
+.table_wrap ul li .item {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 15px 0;
+    height: 50px;
+}
+
+.table_wrap ul li .item .name,
+.table_wrap ul li .item .phone {
+    width: 20%;
+    padding: 0 15px;
+}
+
+.table_wrap ul li .item .issue {
+    width: 40%;
+    padding: 0 15px;
+}
+
+.table_wrap ul li .item .status {
+    width: 20%;
+    padding: 0 15px;
+}
+
+.table_wrap ul li .item .issue span,
+.table_wrap ul li .item .name span {
+    width: 90%;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table_header ul {
+    margin-bottom: 2px;
+}
+
+.table_header ul li .item {
+    border-bottom: 2px solid #eaeaea;
+    margin-bottom: 0 !important;
+}
+
+.table_body {
+    max-height: 265px;
+    overflow: auto;
+}
+
+.table_body ul li .item {
+    border-bottom: 1px solid #efefef;
+}
+
+.table_body ul li .item .status span {
+    padding: 5px 20px;
+    border-radius: 25px;
+    max-width: 115px;
+    display: inline-block;
+}
+
+.table_body ul li .item .open {
+    background: #e5edfa;
+    color: #5a8ee4;
+}
+
+.table_body ul li .item .fixed {
+    background: #cff1f0;
+    color: #0dbeb6;
+}
+
+.table_body ul li .item .closed {
+    background: #fedfe5;
+    color: #f59d39;
+}
+
+.table_body ul li .item .hold {
+    background: #fff0db;
+    color: #f59d39;
+}
+
+.table_body ul li .item .reopened {
+    background: #dcf2ff;
+    color: #29a5d8;
+}
+
+.table_body ul li .item .canceled {
+    background: #ffdbd6;
+    color: #e87060;
+} 
+
+.table_wrap ul li .item .action_date {
+    width: 25%;
+    padding: 0 15px;
+}
+
+.table_wrap ul li .item .action {
+    width: 25%;
+    padding: 0 15px;
+}
+
+.table_wrap ul li .item .action_user {
+    width: 30%;
+    padding: 0 15px;
+}
+
+.table_wrap ul li .item .action_status {
+    width: 20%;
+    padding: 0 15px;
+}
+
+.table_body ul li .item .err {
+    background: #ffdbd6;
+    color: #e87060;
+} 
+
+.table_body ul li .item .info {
+    background: #e5edfa;
+    color: #5a8ee4;
+} 
+
+/* Ticker Card Layouts */
+
+.border_top_custom {
+    border-top: 1px solid #17A2B8;  /* 3px */
+    border-radius: 4px;
+}
+
+.border_top_custom2 {
+    border-top: 0px solid #921010;  /* 3px */
+    border-radius: 4px;
+}
+
+.kpi_ticker .card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.kpi_ticker span {
+    font-size: 13px;
+}
+
+.kpi_ticker i {
+    font-size:28px;
+}
+
+.kpi_ticker i.fa-shopping-bag {
+    color: #bf40ca;
+}
+
+.kpi_ticker i.fa-sort-alpha-up-alt {
+    color: #daa696;
+}
+
+.kpi_ticker i.fa-thumbs-up {
+    color:rgb(252, 145, 163);
+}
+
+.kpi_ticker i.fa-pallet {
+    color:rgb(131, 122, 125);
+}
+
+.kpi_ticker i.fa-users {
+    color:rgb(21, 192, 87);
+}
+
+.kpi_ticker i.fa-user-tie {
+    color:#daa696;
+}
+
+.kpi_ticker i.fa-wallet {
+    color:rgb(82, 155, 240);
+}
+
+.kpi_ticker i.fa-store {
+    color:rgb(131, 122, 125);
+}
+
+/* Stock Card Layouts */
+
+table#stock_by_category {
+    font-size: 14px;
+}
+
+.card-scrollable-1 {
+    height: 250px; 
+    overflow-y: auto; 
+    margin-bottom: 30px
+}
+
+
+/* Recent Requests Card Layouts */
+
+table#recent_requests {
+    font-size: 13px;
+}
+
+.card-scrollable-2 {
+    max-height: 330px; 
+    overflow-y: auto; 
+    margin-bottom: 0;
+}
+
+#recent_request_items tr td span {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+#recent_request_items tr td span.pending {
+    background: #fedfe5;
+    color: #f59d39;
+}
+
+#recent_request_items tr td span.open {
+    background: #e5edfa;
+    color: #5a8ee4;
+}
+
+#recent_request_items tr td span.fixed {
+    background: #cff1f0;
+    color: #0dbeb6;
+}
+
+#recent_request_items tr td span.closed {
+    background: #fedfe5;
+    color: #f59d39;
+}
+
+#recent_request_items tr td span.hold {
+    background: #fff0db;
+    color: #f59d39;
+}
+
+#recent_request_items tr td span.reopened {
+    background: #dcf2ff;
+    color: #29a5d8;
+}
+
+#recent_request_items tr td span.canceled {
+    background: #ffdbd6;
+    color: #e87060;
+} 
+
+
+/* Stock By Status Table Card Layouts */
+
+#stock_by_status_items tr td {
+    padding: 10px 5px; 
+    border: none; 
+    font-size: 13px; 
+}
