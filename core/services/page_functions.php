@@ -680,6 +680,88 @@ function fetch_all_storeunits() {
 }
 
 /*
+ * Manage Subdomain Users
+ * 
+ */
+
+function fetch_all_subdom_users() {
+    $subdom_users = array();
+
+    // $userDomain = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $userId = $_SESSION['userid'];
+
+    $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $userDomain = getDomainByName($userDomainName);
+    $userSubDoms = getSubDomsByUserId($userId);
+
+    $opr = new DBOperation();       // Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT su.id as sub_dom_user_id, su.user_id, 
+                (SELECT name FROM users WHERE su.user_id = users.id) as username,
+                su.sub_dom_id, 
+                sd.id, sd.name as subdom_name, 
+                sd.parent_domain_id,
+                (SELECT name FROM domains WHERE sd.parent_domain_id = domains.id) as domain_name
+                FROM subdomains_users as su INNER JOIN subdomains as sd
+                ON su.sub_dom_id = sd.id";
+
+        // Restrict view of all users only to admins
+        if (!isRoleInGroup('admin', $userGroupId)) {
+            // Restrict view only to user's provisioned subdomains
+            $sql .= " WHERE `sd`.parent_domain_id='" . $userDomain['id'] ."'";
+            // $sql .= " AND `vp`.sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $subdom_users[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $subdom_users;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getSubDomUserById($subDomUserId) {
+    $sub_dom_user = [];	
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $res = $opr->sqlSelect('SELECT * FROM subdomains_users WHERE id=?', 'i', $subDomUserId);
+
+        if($res && $res->num_rows === 1) {
+            $sub_dom_user = $res->fetch_assoc();
+            $res->free_result();
+
+            return $sub_dom_user;          
+        }
+        else {
+            return -2;  // User not found
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }  
+}
+
+
+
+/*
  * Manage Customers
  * 
  */
@@ -1104,6 +1186,76 @@ function fetch_all_store_requisitions() {
     }  
 }
 
+function fetch_storereq_by_id($storeRequisitionId) {
+    $store_req = [];	
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT requisition_no, brief_description, requester_id, approver_id, storekeeper_id, 
+                domain_id, sub_dom_id,
+                (SELECT users.name FROM users WHERE requester_id = users.id) as requester, 
+                (SELECT users.name FROM users WHERE approver_id = users.id) as approver, 
+                (SELECT users.name FROM users WHERE storekeeper_id = users.id) as storekeeper,
+                approver_notes, storekeeper_notes, request_date, status 
+                FROM store_reqs WHERE id=?";
+
+        $res = $opr->sqlSelect($sql, 'i', $storeRequisitionId);
+
+        if($res && $res->num_rows === 1) {
+            $store_req = $res->fetch_assoc();
+            $res->free_result();
+
+            return $store_req;          
+        }
+        else {
+            return -2;  // User not found
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }  
+}
+
+function fetch_storereq_lines_by_id($storeRequisitionId) {
+    $store_req_lines = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       // Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT store_reqs.requisition_no, srli.description, srli.sku, srli.requested_qty, srli.issued_qty, 
+                store_reqs.brief_description, store_reqs.request_date, store_reqs.status 
+                FROM store_req_line_items as srli INNER JOIN store_reqs 
+                ON srli.requisition_id = store_reqs.id WHERE store_reqs.id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $storeRequisitionId);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $store_req_lines[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $store_req_lines;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
 
 /*
  * Manage Customer Purchase Requisitions
@@ -1128,7 +1280,7 @@ function fetch_all_customer_preqs() {
                 customer_preqs.sub_dom_id,
                 (SELECT name FROM subdomains WHERE customer_preqs.sub_dom_id = subdomains.id) as subdom,
                 organizations.name as customer,
-                customer_preqs.net_total, customer_preqs.status
+                customer_preqs.base_cost, customer_preqs.status
                 FROM customer_preqs INNER JOIN organizations
                 ON customer_preqs.customer_id = organizations.id 
                 AND organizations.type = 'customer'";
@@ -1149,6 +1301,98 @@ function fetch_all_customer_preqs() {
         $opr->close();
 
         return $customerpreqs;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getCustomerPreqById($preqId) {
+    $customerpreq = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, preq_date, preq_no, description, 
+                domain_id, 
+                (SELECT name FROM domains WHERE domain_id = domains.id) as domain_name,
+                sub_dom_id, 
+                (SELECT name FROM subdomains WHERE sub_dom_id = subdomains.id) as subdom_name,
+                originator_id, 
+                (SELECT name FROM users WHERE id = originator_id) as originator, 
+                approver_id, 
+                (SELECT name FROM users WHERE id = approver_id) as approver,
+                customer_id,
+                (SELECT name FROM organizations WHERE id = customer_id) as customer,
+                approver_notes, base_cost, status 
+                FROM customer_preqs WHERE id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows === 1) {
+            $customerpreq = $results->fetch_assoc();
+            $results->free_result();
+            return $customerpreq;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getCustomerPreqLinesById($preqId) {
+    $customerpreq_lines = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT preq_id, 
+                (SELECT product_name FROM products 
+                    WHERE catalog_product_id = products.id) as product_name, 
+                (SELECT unit FROM products 
+                    WHERE catalog_product_id = products.id) as unit, 
+                (SELECT name FROM brands WHERE 
+                    (SELECT brand_id FROM products
+                        WHERE catalog_product_id = products.id) = brands.id) as brand,
+                (SELECT short_descr FROM products 
+                    WHERE catalog_product_id = products.id) as product_descr,     
+                (SELECT sku FROM products 
+                    WHERE catalog_product_id = products.id) as sku, 
+                unit_price, quantity, rx_quantity, total_cost, additional_info 
+                FROM customer_preq_line_items 
+                WHERE preq_id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $customerpreq_lines[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $customerpreq_lines;
     }
     else {
         return -1;                  // Failed to connect to database
@@ -1287,7 +1531,7 @@ function fetch_customer_porder_by_id2($id) {
 
         $sql = "SELECT porder_no, description, porder_date,
                 (SELECT users.name FROM users WHERE customer_porders.originator_id = users.id) as originator, 
-                originator_id,
+                originator_id, domain_id, sub_dom_id,
                 (SELECT name FROM organizations WHERE customer_porders.customer_id = organizations.id) as customer, 
                 customer_id, sub_total, vat, discount, net_total, paid, due, payment_method, 
                 shipping_method, status, rel_request_id, notes 
@@ -1405,8 +1649,510 @@ function fetch_all_vendor_products() {
     }  
 }
 
+function fetch_unknown_vendor_products() {
+    $vproducts = array();
+
+    $userId = $_SESSION['userid'];
+
+    $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $userDomain = getDomainByName($userDomainName);
+    $userSubDoms = getSubDomsByUserId($userId);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT vp.id, vp.domain_id, vp.sub_dom_id, vp.vendor_id, 
+                (SELECT name FROM organizations WHERE organizations.id = vp.vendor_id) as vendor,
+                vp.brand, vp.category,
+                vp.provisional_sku, vp.product_name_descr, vp.feature, vp.unit, vp.lot, 
+                vp.qty_per_offer, vp.offer_price, vp.offer_date, vp.active,
+                vp.created_on, vp.created_by,
+                (SELECT name FROM users WHERE vp.created_by = users.id) as creator 
+                FROM vendors_products as vp
+                WHERE vp.provisional_sku LIKE 'UKN%'";
+
+        // Restrict view of all users only to admins
+        if (!isRoleInGroup('admin', $userGroupId)) {
+            // Restrict view only to user's provisioned subdomains
+            $sql .= " AND `vp`.domain_id='" . $userDomain['id'] ."'";
+            $sql .= " AND `vp`.sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        }
+
+        // echo $sql;
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vproducts[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vproducts;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetch_all_vendor_products_join_products() {
+    $vproducts = array();
+
+    // $userId = $_SESSION['userid'];
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+    // $userSubDoms = getSubDomsByUserId($userId);
+
+    $opr = new DBOperation();       // Connect to database
+    if ($opr->dbConnected()) {
+
+        // From original SQL, the only differences are 'product_name', 'products.unit'
+        // $sql = "SELECT vp.id, products.product_name, vp.short_descr, products.unit, vp.qty_per_offer, vp.offer_price, 
+        //         (SELECT vendors.company_name FROM vendors WHERE vp.vendor_id = vendors.id) as vendor 
+        //         FROM `vendors_products` as vp INNER JOIN products ON vp.sku = products.sku";
+
+        $sql = "SELECT vp.id, products.product_name, products.unit as product_unit, 
+                vp.domain_id, vp.sub_dom_id, vp.vendor_id, 
+                (SELECT name FROM organizations WHERE organizations.id = vp.vendor_id) as vendor,
+                vp.brand, vp.category, vp.provisional_sku, vp.product_name_descr, vp.feature, 
+                vp.unit, vp.lot, vp.qty_per_offer, vp.offer_price, vp.offer_date, vp.active
+                FROM vendors_products as vp INNER JOIN products
+                ON vp.provisional_sku = products.sku";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     // Restrict view only to user's provisioned subdomains
+        //     $sql .= " WHERE `vp`.domain_id='" . $userDomain['id'] ."'";
+        //     $sql .= " AND `vp`.sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vproducts[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vproducts;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
 
 
+/*
+ * Manage Vendor Purchase Requisitions
+ * 
+ */
+
+function fetch_all_vendor_preqs() {
+    $vendorpreqs = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        // $sql = "SELECT id, order_requisition_date, requisition_no, description, requester_id,
+        //         (SELECT name FROM users WHERE id = requester_id) as requester,
+        //         base_cost, status FROM order_requisitions";
+
+        $sql = "SELECT vendor_preqs.id, vendor_preqs.preq_no, vendor_preqs.preq_date, 
+                vendor_preqs.description,
+                vendor_preqs.domain_id, 
+                (SELECT name FROM domains WHERE vendor_preqs.domain_id = domains.id) as domain,
+                vendor_preqs.sub_dom_id,
+                (SELECT name FROM subdomains WHERE vendor_preqs.sub_dom_id = subdomains.id) as subdom,
+                vendor_preqs.requester_id,
+                (SELECT name FROM users WHERE users.id = vendor_preqs.requester_id) as requester,
+                vendor_preqs.base_cost, vendor_preqs.status
+                FROM vendor_preqs";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vendorpreqs[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vendorpreqs;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+
+function getVendorPreqById($preqId) {
+    $vendorpreq = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, preq_date, preq_no, description, requester_id, 
+                domain_id, 
+                (SELECT name FROM domains WHERE domain_id = domains.id) as domain_name,
+                sub_dom_id,
+                (SELECT name FROM subdomains WHERE sub_dom_id = subdomains.id) as sub_dom_name, 
+                approver_id, 
+                (SELECT name FROM users WHERE id = approver_id) as approver,
+                approver_notes, base_cost, status 
+                FROM vendor_preqs WHERE id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows === 1) {
+            $vendorpreq = $results->fetch_assoc();
+            $results->free_result();
+            return $vendorpreq;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getVendorPreqLinesById($preqId) {
+    $vendorpreq_lines = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT preq_id, 
+                (SELECT name FROM organizations WHERE vendor_id = organizations.id) as vendor,
+                (SELECT product_name_descr FROM vendors_products 
+                    WHERE vendor_product_id = vendors_products.id) as product_descr, 
+                (SELECT provisional_sku FROM vendors_products 
+                    WHERE vendor_product_id = vendors_products.id) as sku, 
+                rate, quantity, total, additional_info 
+                FROM vendor_preq_line_items 
+                WHERE preq_id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vendorpreqs[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vendorpreqs;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getVendorsInfoFromPreqLineItemsByPreqId($preqId) {
+    $related_vendors = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT vpli.vendor_id, vendor_preqs.preq_date, 
+                (SELECT name FROM `organizations` WHERE vpli.vendor_id = `organizations`.id) as vendor
+                FROM `vendor_preq_line_items` as vpli INNER JOIN vendor_preqs 
+                ON vpli.preq_id = vendor_preqs.id 
+                WHERE `vpli`.preq_id=?
+                GROUP BY vpli.vendor_id, vendor_preqs.preq_date";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $related_vendors[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $related_vendors;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getVendorPreqLinesByVendorId($preqId, $vendorId) {
+    $vendorpreq_lines = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT vpli.preq_id, vpli.vendor_product_id, 
+                (SELECT product_name FROM products WHERE products.sku = vp.provisional_sku) as product_name, 
+
+                (SELECT name FROM brands WHERE id = (SELECT brand_id FROM products WHERE sku = vp.provisional_sku)) as brand, 
+                (SELECT unit FROM products WHERE sku = vp.provisional_sku) as unit, 
+
+                vp.product_name_descr, vp.qty_per_offer, vp.provisional_sku, vpli.rate, vpli.quantity, 
+                vpli.total, vpli.additional_info 
+                FROM `vendor_preq_line_items` as vpli INNER JOIN vendors_products as vp 
+                ON vpli.vendor_id = vp.vendor_id AND vpli.vendor_product_id = vp.id 
+                WHERE vpli.preq_id=? AND vpli.vendor_id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'ii', $preqId, $vendorId);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vendorpreq_lines[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vendorpreq_lines;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+
+
+/*
+ * Manage Vendor Purchase Orders
+ * 
+ */
+
+function fetch_all_vendor_pos() {
+    $vendorpos = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, porder_no, porder_date,
+                (SELECT name FROM organizations WHERE vendor_porders.vendor_id = organizations.id) as vendor,
+                (SELECT name FROM users WHERE vendor_porders.requester_id = users.id) as requester,
+                (SELECT name FROM users WHERE vendor_porders.issuer_id = users.id) as issuer,
+                net_total, status
+                FROM vendor_porders";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vendorpos[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vendorpos;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getVendorPorderById($preqId) {
+    $vendorporder = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT porder_no, porder_date, 
+                (SELECT preq_no FROM vendor_preqs WHERE vendor_preqs.id = vendor_porders.src_requisition_id) as preq_no,
+                (SELECT name FROM organizations WHERE vendor_porders.vendor_id = organizations.id) as vendor, 
+                (SELECT contact_email FROM organizations WHERE vendor_porders.vendor_id = organizations.id) as vendor_email, 
+                (SELECT address FROM organizations WHERE vendor_porders.vendor_id = organizations.id) as vendor_address,
+                (SELECT name FROM users WHERE vendor_porders.requester_id = users.id) as requester, 
+                status, sub_total, net_total, paid, payment_method, shipping_method, shipping_cost, 
+                vat, due, discount,
+                (SELECT name FROM users WHERE vendor_porders.issuer_id = users.id) as issuer, 
+                issuer_id, issuer_notes
+                FROM vendor_porders WHERE vendor_porders.id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows === 1) {
+            $vendorporder = $results->fetch_assoc();
+            $results->free_result();
+            return $vendorporder;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getVendorPorderLinesById($preqId) {
+    $vendorporder_lines = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT vendor_porders.porder_no, 
+                (SELECT product_name_descr FROM vendors_products 
+                    WHERE vpli.vendor_product_id = vendors_products.id) as product_descr, 
+                (SELECT provisional_sku FROM vendors_products 
+                    WHERE vpli.vendor_product_id = vendors_products.id) as sku, 
+                vpli.quantity, vpli.unit_price, vpli.total_cost 
+                FROM vendor_porder_line_items as vpli INNER JOIN vendor_porders 
+                ON vpli.porder_id = vendor_porders.id 
+                WHERE vendor_porders.id=?";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql, 'i', $preqId);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $vendorporder_lines[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $vendorporder_lines;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+
+
+/*
+ * Manage Customer Purchase Orders
+ * 
+ */
+
+function fetch_all_inline_orders() {
+    $inline_orders = array();
+
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    // $userDomain = getDomainByName($userDomainName);
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT iorder_no, iorder_date, description,
+                attendant_id,
+                (SELECT name FROM users WHERE attendant_id = users.id) as attendant_name,
+                customer_id,
+                (SELECT name FROM organizations WHERE customer_id = organizations.id) as customer_name,
+                client_id,
+                (SELECT name FROM users WHERE client_id = users.id) as client_name,
+                domain_id,
+                (SELECT name FROM domains WHERE domain_id = domains.id) as domain,
+                sub_dom_id,
+                (SELECT name FROM subdomains WHERE sub_dom_id = subdomains.id) as subdom,
+                sub_total, vat, discount, net_total, paid, payment_method, shipping_method,
+                shipping_cost, status, notes
+                FROM inline_orders";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain_id='" . $userDomain['id'] ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $inline_orders[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $inline_orders;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
 
 
 ?>

@@ -20,7 +20,7 @@
 
                 if (mysqli_num_rows($res) > 0) { ?>
                 
-                <table class="table tabe-hover table-bordered table-stock" id="list2">
+                <table class="table table-bordered table-stock" id="listStockSelection">
 
                     <thead>
                         <tr>
@@ -82,7 +82,7 @@
 <script>
 $(document).ready(function() {
 
-    $('#list2').DataTable();     // initialize the datatable
+    $('#listStockSelection').DataTable();     // initialize the datatable
 
     var xdata;
 
@@ -93,7 +93,7 @@ $(document).ready(function() {
         //alert(xdata);
     });
 
-    $("#list2").on("click", ".select_stock", function() {
+    $("#listStockSelection").on("click", ".select_stock", function() {
         var stockID = $(this).attr('data-id');  // actual selected stock ID in db
         // Set the hidden input field with the stock id
         $('#stock_product_'+xdata).val(stockID);

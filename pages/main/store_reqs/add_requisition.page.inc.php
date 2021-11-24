@@ -6,10 +6,30 @@
                 Create a Store Requisition
             </div>
 
-            <form id="requisition_form"> <!-- manage_requisition -->
+            <form id="store_requisition_form"> <!-- manage_requisition -->
                 <div class="card-body">
                 
                     <input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="">Domains</label>
+                                <select name="domainid" id="domainid" class="custom-select custom-select-sm">
+                                    <option value="0">Company Domain</option>
+                                </select>
+                            </div>                                
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="">Subdomains</label>
+                                <select name="subdomid" id="subdomid" class="custom-select custom-select-sm">
+                                    <option value="0">Unit Subdomain</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-9">
                             <div class="form-group">
@@ -45,7 +65,7 @@
                                 <!-- <th class="text-center" style="width: 5%;">Action</th> -->
                             </tr>
                         </thead>
-                        <tbody id="requisition_item">
+                        <tbody id="store_requisition_item">
 
                             <!-- Placeholder -->
 
@@ -91,7 +111,7 @@
                                         value="Administrator"
                                         readonly
                                     >
-                                    <input type="hidden" name="approver_id" value="48">
+                                    <input type="hidden" name="approver_id" value="1">
                                 </div>
                             </div>
                         </div>
@@ -107,7 +127,7 @@
                                         value="Administrator"
                                         readonly
                                     >
-                                    <input type="hidden" name="shopkeeper_id" value="48">
+                                    <input type="hidden" name="shopkeeper_id" value="1">
                                 </div>
                             </div>
                         </div>
@@ -116,7 +136,7 @@
 
                 <div class="card-footer bg-white">
                     <div class="col-md-12 d-flex justify-content-end">
-                        <button id="requisition_create_btn" type="button" class="btn bg-theme-accent px-4 mr-2">Create Requisition</button>
+                        <button id="store_requisition_create_btn" type="button" class="btn bg-theme-accent px-4 mr-2">Create Requisition</button>
                         <button class="btn btn-secondary" type="button" onclick="location.href = 'main.php?dir=store_reqs&page=list_requisitions'">Cancel</button>
                     </div>
                 </div>
@@ -148,30 +168,35 @@ $(document).ready(function() {
         $('#picker').datetimepicker('toggle');
     });    
 
+    initializeStoreReqDomainsSelect();
+
+    $('#domainid').on('change', function() {
+        // alert( this.value );
+        domainsChangeStoreReqUpdateSubDomSelect( this.value );
+    });
+
     // add the first row
-    addNewStoreRequisitionRow();
+    addStoreRequisitionRow();
 
     $("#add").click(function() {
-        addNewStoreRequisitionRow();
+        addStoreRequisitionRow();
     });
 
     $("#remove").click(function() {
         $("#requisition_item").children("tr:last").remove();
     });
 
-    $("#requisition_item").delegate('.stock_product_id', "change", function() {
+    $("#store_requisition_item").delegate('.stock_product_id', "change", function() {
         storeRequisitionItemChangeUpdate(this);
     });
 
-    $("#requisition_item").delegate(".stock_product_qty", "keyup", function() {
+    $("#store_requisition_item").delegate(".stock_product_qty", "keyup", function() {
         validateStockProductQty(this);
     });
 
     // Requisition Creation - Accepting Data
-    $("#requisition_create_btn").click(function() {
-        var form_data = $("#requisition_form").serializeArray(); 
-        // console.log(form_data);
-
+    $("#store_requisition_create_btn").click(function() {
+        var form_data = $("#store_requisition_form").serializeArray(); 
         createStoreRequisition(form_data);
     });    
 

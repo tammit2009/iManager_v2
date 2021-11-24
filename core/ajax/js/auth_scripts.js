@@ -195,7 +195,8 @@ function login() {
 				// if (data.groupid === 2) 
 				// 		window.location = `${baseUrlAuth}/imanager/admin/dashboard.php`;
 				// else 
-				window.location = `${baseUrlAuth}/imanager/main.php?page=home`;
+				// window.location = `${baseUrlAuth}/imanager/main.php?page=home`;
+				window.location = `${baseUrlAuth}/imanager/dashboard.php?page=index`;
 				break;
 			default:
 				document.getElementById('errs').innerHTML += '<div class="err">' + data.message +  '.</div>';

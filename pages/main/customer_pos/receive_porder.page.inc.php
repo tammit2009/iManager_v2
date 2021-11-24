@@ -27,6 +27,8 @@ if(isset($_GET['id'])){
                         <div class="col-md-4">
                             <h3 class="p-2 pt-3 text-right">#<?= $porder['porder_no']; ?></h3>
                         </div>
+                        <input type="hidden" name="porder_rx_domain_id" class="porder_rx_domain_id" value="<?= $porder['domain_id']; ?>">
+                        <input type="hidden" name="porder_rx_subdom_id" class="porder_rx_subdom_id" value="<?= $porder['sub_dom_id']; ?>">
                     </div>
                 </div>
             
@@ -193,8 +195,6 @@ $(document).ready(function(){
 
     // Receive PO Items
     $("#product_rx_update_btn").click(function() {
-        // alert("Update button clicked");
-
         var form_data = $("#porder_receive_form").serializeArray(); // convert form to array
         receiveCustomerPorderItems(form_data);
     });

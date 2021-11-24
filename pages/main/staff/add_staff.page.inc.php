@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-md-6">
 
-        <div class="dashboard card my-4 px-3">
+        <div class="dashboard card my-2 px-3">
             <div class="card-body">
                 
                 <form id="manage_staff_form" enctype="multipart/form-data"> 
@@ -73,20 +73,25 @@
 </div>
 
 <!-- Modals -->
-<?php include('./pages/modals/user_selector.php'); ?> <
+<?php include('./pages/modals/user_selector.php'); ?> 
 
 <script>
+$(document).ready(function(){
 
-// submit form as standard and continue with ajax in 'main_scripts.js'
-$('#manage_staff_form').submit(function(e) {
-	e.preventDefault();
+    $('.page-title').addClass('d-none');
 
-	var form_data = new FormData($(this)[0]);	// This method has to be used in order to submit file(s)
+    // submit form as standard and continue with ajax in 'main_scripts.js'
+    $('#manage_staff_form').submit(function(e) {
+        e.preventDefault();
 
-	// Print the FormData
-	for (var pair of form_data.entries()) { console.log(pair[0]+ ', ' + pair[1]); }
+        var form_data = new FormData($(this)[0]);	// This method has to be used in order to submit file(s)
 
-	// manageStaff(form_data);
+        // Print the FormData
+        for (var pair of form_data.entries()) { console.log(pair[0]+ ', ' + pair[1]); }
+
+        // manageStaff(form_data);
+    });
+
 });
 	
 </script>

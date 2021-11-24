@@ -76,7 +76,7 @@
                                     Action
                                 </button>
                                 <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="./main.php?dirs=store_reqs&page=view_requisition&amp;id=<?php echo $row['id']; ?>">View</a>
+                                    <a class="dropdown-item" href="./main.php?dir=store_reqs&page=view_requisition&amp;id=<?php echo $row['id']; ?>">View</a>
                                     <div class="dropdown-divider"></div>
                                     <!-- <a class="dropdown-item approve_requisition" href="javascript:void(0)" data-id="</?php echo $row['id']; ?>">Approve</a>
                                     <div class="dropdown-divider"></div> -->

@@ -2,6 +2,16 @@
 include_once('../../security.php');
 include_once('db_functions.php');
 
+// Get all Domains
+if (isset($_POST["get_all_domains"])) {
+    echo json_encode(getAllDomains());
+}
+
+// Get Domain By Id
+if (isset($_POST["get_domain_by_id"]) && isset($_POST["domainid"])) {
+    echo json_encode(getDomainById($_POST["domainid"]));
+}
+
 // Fetch Domain By Id
 if (isset($_GET["getDomainById"])) {
     if (isset($_GET["domainid"])) {
@@ -25,7 +35,16 @@ if (isset($_POST["createNewDomain"])) {
         $result = array( 'code' => 0, 'message' => 'New Domain successfully created.', 'id' => $id );
     }
     else {
-        $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
+        switch($id) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'FUnable to create default subdomain.' );
+                break; 
+            default: 
+                $result = array( 'code' => 3, 'message' => 'Unknown error.' );
+        }
     }
 
     echo json_encode($result);

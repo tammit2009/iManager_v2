@@ -5,7 +5,7 @@ require_once 'php_libs/sendgrid/sendgrid-php.php';
 
 function sendGridEmail($to, $toName, $subj, $msg) {
 
-    $bypass = false;
+    $bypass = true;
 
     if ($bypass) {
         // temporarily bypass sending of emails 

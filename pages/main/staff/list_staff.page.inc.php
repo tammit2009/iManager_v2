@@ -5,9 +5,9 @@
 <div class="dashboard card my-2">
     <div class="card-header bg-white">
         <div class="card-header-panel d-flex align-items-center justify-content-between">
-            <h3 class="my-0">Staff</h3>
+            <h3 class="my-0">Members</h3>
             <a href="./main.php?dir=staff&page=add_staff" class="btn btn-block btn-sm btn-default btn-flat border-info">
-                <i class="fa fa-plus"></i> Add New Staff
+                <i class="fa fa-plus"></i> Add New Member
             </a>
         </div>
     </div>

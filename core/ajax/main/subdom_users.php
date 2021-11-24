@@ -2,30 +2,20 @@
 include_once('../../security.php');
 include_once('db_functions.php');
 
-$action = isset($_GET['action']) ? $_GET['action'] : '';    
-
-// Get all Users
-if (isset($_POST["get_all_users"])) {
-    echo json_encode(getAllUsers());
-}
-
-// Get User Domain
-if (isset($_POST["get_user_domain"]) && isset($_POST["userid"])) {
-    echo json_encode(getUserDomain($_POST["userid"]));
-}
+$action = isset($_GET['action']) ? $_GET['action'] : '';  
 
 // Create/Edit User
-if (isset($_POST["manageUser"])) {
+if (isset($_POST["manageSubDomUser"])) {
     
-    if ($action === 'manage_user') {
+    if ($action === 'manage_subdom_user') {
         // Not used.
     }
     
-    // View the variables // print_r($_POST); // print_r($_FILES);
+    // View the variables // print_r($_POST); 
 
-    $id = saveUser($_POST, $_FILES);
+    $id = saveSubDomUser($_POST);
     if ($id > 0) {
-        $result = array( 'code' => 0, 'message' => 'User successfully saved.', 'id' => $id );
+        $result = array( 'code' => 0, 'message' => 'Subdomain User successfully saved.', 'id' => $id );
     }
     else {
         switch ($id) {
@@ -33,10 +23,10 @@ if (isset($_POST["manageUser"])) {
                 $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
                 break;
             case -2: 
-                $result = array( 'code' => 2, 'message' => 'Email already exists.' );
+                $result = array( 'code' => 2, 'message' => 'subdomain has already been associated.' );
                 break; 
             case -3: 
-                $result = array( 'code' => 3, 'message' => 'Unable to insert user into the db.' );
+                $result = array( 'code' => 3, 'message' => 'Unable to insert subdomain user into the db.' );
                 break;
             default:
                 $result = array( 'code' => 4, 'message' => 'Unknown error.' );
@@ -47,21 +37,22 @@ if (isset($_POST["manageUser"])) {
 }
 
 // Delete a User
-if ($action === 'delete_user') {
-    // View the variables // print_r($_POST);
+if ($action === 'delete_subdom_user') {
+    // View the variables 
+    // print_r($_POST);
 
     $id = isset($_POST['id']) ? $_POST['id'] : false;
     if ($id) {
-        $res = deleteUser($id);
+        $res = deleteSubDomUser($id);
         if ($res === 0) {
-            $result = array( 'code' => 0, 'message' => 'User successfully deleted.' );
+            $result = array( 'code' => 0, 'message' => 'Subdomain User successfully deleted.' );
         }
         else {
             if ($res === -1) {
                 $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
             }
             else if ($res === -2) {
-                $result = array( 'code' => 2, 'message' => 'Unable to delete user.' );
+                $result = array( 'code' => 2, 'message' => 'Unable to delete Subdomain User.' );
             }
             else {
                 $result = array( 'code' => 3, 'message' => 'Unknown error.' );

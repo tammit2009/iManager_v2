@@ -38,13 +38,9 @@
 $(document).ready(function() {
 
     // initiate ajax and continue in 'main_scripts.js'
-
     $('#createDomainModal').delegate('.create_domain_btn', 'click', function(e) {
-
         var form_data = $("#create_domain_form").serializeArray(); // convert form to array
-        
         createNewDomain(form_data);
-
     });
 });   
 </script>

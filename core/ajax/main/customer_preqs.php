@@ -93,14 +93,23 @@ if (isset($_POST["get_preq_item_details"])) {
 
 
 // Capture and store purchase requisition data
-if (isset($_POST["createPurchaseRequisition"]) AND isset($_POST["originator_id"])) {
+if (isset($_POST["createPurchaseRequisition"]) AND isset($_POST["preq_originator_id"])) {
 
     // print_r($_POST);
 
+    $preq_supplier = $_POST['preq_supplier'];
     $preq_date = $_POST["preq_date"];
+    $domainid = $_POST["domainid"];
+    $subdomid = $_POST["subdomid"];
     $preq_descr = $_POST["preq_descr"];
-    $originator_id = $_POST["originator_id"];
-    $customer_id = $_POST["customer_id"];
+    $preq_notes = $_POST["preq_notes"];
+    $preq_subtotal = $_POST["preq_subtotal"];
+    $originator = $_POST["preq_originator"];
+    $originator_id = $_POST["preq_originator_id"];
+    $approver = $_POST["preq_approver"];
+    $approver_id = $_POST["preq_approver_id"];
+    $customer = $_POST["preq_customer"];
+    $customer_id = $_POST["preq_customer_id"];
 
     // Now getting arrays from order_form
     $arr_product_id            = $_POST["product_id"];
@@ -116,23 +125,82 @@ if (isset($_POST["createPurchaseRequisition"]) AND isset($_POST["originator_id"]
 
     // print_r($arr_product_descr);
 
-    $sub_total          = $_POST["preq_subtotal"];
-    $vat                = $_POST["preq_vat"];
-    $discount           = $_POST["preq_discount"];
-    $total_amt          = $_POST["preq_total_amt"];
-    $grand_total        = $_POST["preq_grand_total"];
-    $paid_amt           = $_POST["preq_paid_amount"];
-    $due                = $_POST["preq_due_amount"];
-    $shipping           = $_POST["preq_shipping"];
-    $shipping_method    = $_POST["preq_shipping_method"];
-    $payment_method     = $_POST["preq_payment_method"];
-    $payment_status     = $_POST["preq_payment_status"];
-    $notes              = $_POST["preq_notes"];
+    // $vat                = $_POST["preq_vat"];
+    // $discount           = $_POST["preq_discount"];
+    // $total_amt          = $_POST["preq_total_amt"];
+    // $grand_total        = $_POST["preq_grand_total"];
+    // $paid_amt           = $_POST["preq_paid_amount"];
+    // $due                = $_POST["preq_due_amount"];
+    // $shipping           = $_POST["preq_shipping"];
+    // $shipping_method    = $_POST["preq_shipping_method"];
+    // $payment_method     = $_POST["preq_payment_method"];
+    // $payment_status     = $_POST["preq_payment_status"];
 
     // Generate a requisition
-    echo generateCustomerPurchaseRequisition( $originator_id, $customer_id, $preq_date, $preq_descr,
-                                $arr_product_id, $arr_product_name, $arr_product_descr, $arr_product_unit, 
-                                $arr_product_qty, $arr_product_rate, $arr_product_total,
-                                $sub_total, $vat, $discount, $total_amt, $grand_total, $paid_amt, $due,
-                                $shipping, $shipping_method, $payment_method, $payment_status, $notes);
+    $res = generateCustomerPurchaseRequisition( $preq_date, $originator_id, $approver_id, $customer_id, $domainid, $subdomid,  
+                                $preq_descr, $arr_product_id, $arr_product_name, $arr_product_descr, 
+                                $arr_product_unit, $arr_product_qty, $arr_product_rate, $arr_product_total,
+                                $preq_subtotal, $preq_notes);
+
+    if ($res > 0) {
+        $result = array( 'code' => 0, 'message' => 'New Customer Purchase Requisition inserted.', 'id' => $res );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Unable to create new order.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Failed to insert all order items. Rolling Back.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            default:
+                $result = array( 'code' => 4, 'message' => 'Unknown error.' );
+        }
+    }
+
+    echo json_encode($result);
 }
+
+
+// Approve Customer Purchase requisition
+if (isset($_POST["customer_preq_approval"])) {
+    // print_r($_POST);
+
+    $customer_preq_approval = $_POST["customer_preq_approval"];   // 0 = processing, 2 = approve, 4 = rejected   
+    $customer_preq_id = $_POST["customer_preq_id"];
+    $approver_id = $_POST["customer_preq_approver_id"];
+    $approver_note = $_POST["customer_preq_approver_notes"];
+
+    // Approve or Reject the vendor purchase requisition
+    $res = approveCustomerPurchaseRequisition($customer_preq_id, $approver_id, $approver_note, $customer_preq_approval); 
+
+    if ($res === 0) {
+        $result = array( 'code' => 0, 'message' => 'Customer Purchase Requisition Approved' );
+    }
+    else if ($res === 1) {
+        $result = array( 'code' => 0, 'message' => 'Customer Purchase Requisition Rejected' );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Incorrect status received.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Unable to update requisition.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            default:
+                $result = array( 'code' => 4, 'message' => 'Unknown error.' );
+        }
+    }
+
+    echo json_encode($result);
+}
+
+
+?>

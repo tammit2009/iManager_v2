@@ -1,5 +1,5 @@
 <?php 
-    $customerpreqs = fetch_all_customer_preqs();
+    $vendorpreqs = fetch_all_vendor_preqs();
 ?>
 
 <div class="row">
@@ -9,8 +9,8 @@
 
             <div class="card-header bg-white">
                 <div class="card-header-panel d-flex align-items-center justify-content-between">
-                    <h3 class="my-0">Customer Purchase Requisitions</h3>
-                    <a href="./main.php?dir=customer_reqs&page=add_preq" class="btn btn-block btn-sm btn-default btn-flat border-info">
+                    <h3 class="my-0">Vendor Purchase Requisitions</h3>
+                    <a href="./main.php?dir=vendor_reqs&page=add_preq" class="btn btn-block btn-sm btn-default btn-flat border-info">
                         <i class="fa fa-plus"></i> Add New Requisition
                     </a>
                 </div>
@@ -21,36 +21,38 @@
                 <!-- Status Messages -->
                 <div id="alert-msg"></div>
 
-                <?php if ($customerpreqs == -1 || empty($customerpreqs)) {
+                <?php if ($vendorpreqs == -1 || empty($vendorpreqs)) {
                     echo "No Record Found"; exit;
                 } ?>
 
-                <table class="table tabe-hover table-bordered table-orders" id="listCustomerPreqs">
+                <table class="table tabe-hover table-bordered table-orders" id="listVendorPreqs">
 
                     <thead>
                         <tr>
-                            <th class="text-center" style="width: 4%;">#</th>
-                            <th class="text-center"  style="width: 7%;">PR #</th>
-                            <th class="text-center" style="width: 12%;">PR Date</th>
-                            <th class="text-center" style="width: 15%;">Description</th>
-                            <th class="text-left" style="width: 15%;">Customer</th>
-                            <th class="text-right" style="width: 7%;">Cost</th>
-                            <th class="text-center" style="width: 7%;">Status</th>
-                            <th class="text-center" style="width: 8%;">Actions</th>
+                            <!-- <th class="text-center" style="width: 4%;">#</th> -->
+                            <th class="text-center" style="width: 4%;">ID</th>
+                            <th class="text-center" style="width: 13%;">Request Date</th>
+                            <th class="text-center" style="width: 12%;">RefID</th>
+                            <th class="text-left" style="width: 20%;">Description</th>
+                            <th class="text-left" style="width: 15%;">Requester</th>
+                            <th class="text-right" style="width: 10%;">Cost</th>
+                            <th class="text-center" style="width: 10%;">Status</th>
+                            <th class="text-center" style="width: 10%;">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
 
                         <?php $i = 1;
-                        foreach ($customerpreqs as $row) { ?>
+                        foreach ($vendorpreqs as $row) { ?>
 
                         <tr role="row" class="odd">
                             <td class="text-center"><?php echo $i; ?></td>
-                            <td class="text-center"><b><?php echo $row['preq_no']; ?></b></td>
+                            <!-- <td class="text-center"><b></?php echo $row['id']; ?></b></td> -->
                             <td class="text-center"><b><?php echo substr($row['preq_date'], 0, 10); ?></b></td>
+                            <td class="text-center"><b><?php echo $row['preq_no']; ?></b></td>
                             <td class="text-left"><b><?php echo $row['description']; ?></b></td>
-                            <td class="text-left"><b><?php echo $row['customer']; ?></b></td>
+                            <td class="text-left"><b><?php echo $row['requester']; ?></b></td>
                             <td class="text-right"><b><?= stdNumFormat($row['base_cost']); ?></b></td>
                             <td class="text-center">
                                 <b>
@@ -76,40 +78,38 @@
                                     Action
                                 </button>
                                 <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="./main.php?dir=customer_reqs&page=view_preq&amp;id=<?php echo $row['id']; ?>">View</a>
+                                    <a class="dropdown-item" href="./main.php?dir=vendor_reqs&page=view_preq&amp;id=<?php echo $row['id']; ?>">View</a>
                                     <div class="dropdown-divider"></div>
                                     <?php if ($row['status'] === 2) { ?>
                                         <a 
                                             class="dropdown-item create_vendor_porders" 
-                                            href="./main.php?dir=customer_pos&page=add_porder&amp;prid=<?php echo $row['id']; ?>&amp;prno=<?php echo $row['preq_no']; ?>">
-                                            Create Order
+                                            href="./main.php?dir=vendor_pos&page=add_porders&amp;id=<?php echo $row['id']; ?>&amp;prno=<?php echo $row['preq_no']; ?>">
+                                            Create Orders
                                         </a>
                                         <div class="dropdown-divider"></div>
                                     <?php } ?>
-                                    <a class="dropdown-item delete_customer_preq" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
+                                    <a class="dropdown-item delete_vendor_preq" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
                                 </div>
+                            
                             </td>
                         </tr>
 
                         <?php $i++; } ?>
 
                     </tbody>
-
                 </table>
 
             </div>
         </div>
-
     </div>
 </div>
-
 
 <script>
 $(document).ready(function(){
 
     $('.page-title').addClass('d-none');
 
-    $('#listCustomerPreqs').DataTable();     // initialize the datatable
+    $('#listVendorPreqs').DataTable();     // initialize the datatable
 
 });
 </script>

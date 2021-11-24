@@ -85,6 +85,8 @@ if (isset($_POST["createStoreRequisition"]) AND isset($_POST["requester_id"])) {
 
     $requisition_date = $_POST["new_requisition_date"];
     $requisition_descr = $_POST["requisition_descr"];
+    $domain_id = $_POST["domainid"];
+    $subdom_id = $_POST["subdomid"];
     $requester_id = $_POST["requester_id"];
     $approver_id = $_POST["approver_id"];
     $shopkeeper_id = $_POST["shopkeeper_id"];
@@ -96,66 +98,211 @@ if (isset($_POST["createStoreRequisition"]) AND isset($_POST["requester_id"])) {
     $arr_stock_product_qty = $_POST["stock_product_qty"];
 
     // Generate a requisition
-    echo generateStoreRequisition($requester_id, $approver_id, $shopkeeper_id, $requisition_date, $requisition_descr,
+    $res = generateStoreRequisition($domain_id, $subdom_id, $requester_id, $approver_id, $shopkeeper_id, $requisition_date, $requisition_descr,
                 $arr_stock_product_item, $arr_stock_product_id, $arr_stock_product_sku, $arr_stock_product_qty);
+
+    if ($res > 0) {
+        $result = array( 'code' => 0, 'message' => 'New Requisition inserted.', 'id' => $res );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Unable to create new requisition.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Failed to insert all requisition items. Rolling Back.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            default:
+                $result = array( 'code' => 4, 'message' => 'Unknown error.' );
+        }
+    }
+
+    echo json_encode($result);
 }
 
+// Approve requisition
+if (isset($_POST["requisition_approve"])) {
+    // print_r($_POST);
 
-// // Create New User
-// if (isset($_POST["manageUser"])) {
+    $requisition_approve = $_POST["requisition_approve"];   // 0 = processing, 2 = approve, 3 = completed, 4 = rejected   
+    $requisition_id = $_POST["requisition_approval_id"];
+    $approver_id = $_POST["requisition_approver_id"];
+    $approver_note = $_POST["requistion_approver_notes"];
     
-//     // View the variables // print_r($_POST); // print_r($_FILES);
+    // Approve a requisition
+    $res = approveStoreRequisition($requisition_id, $approver_id, $approver_note, $requisition_approve); 
 
-//     $id = saveUser($_POST, $_FILES);
-//     if ($id > 0) {
-//         $result = array( 'code' => 0, 'message' => 'User successfully saved.', 'id' => $id );
-//     }
-//     else {
-//         switch ($id) {
-//             case -1: 
-//                 $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
-//                 break;
-//             case -2: 
-//                 $result = array( 'code' => 2, 'message' => 'Email already exists.' );
-//                 break; 
-//             case -3: 
-//                 $result = array( 'code' => 3, 'message' => 'Unable to insert user into the db.' );
-//                 break;
-//             default:
-//                 $result = array( 'code' => 4, 'message' => 'Unknown error.' );
-//         }
-//     }
+    if ($res === 0) {
+        $result = array( 'code' => 0, 'message' => 'Requisition approved.' );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Incorrect status.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Unable to update requisition.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            default:
+                $result = array( 'code' => 4, 'message' => 'Unknown error.' );
+        }
+    }
+
+    echo json_encode($result);
+}
+
+// Reject requisition
+if (isset($_POST["requisition_reject"])) {
+    // print_r($_POST);
+
+    $requisition_reject = $_POST["requisition_reject"];   // 4 = rejected   
+    $requisition_id = $_POST["requisition_approval_id"];
+    $approver_id = $_POST["requisition_approver_id"];
+    $approver_note = $_POST["requistion_approver_notes"];
     
-//     echo json_encode($result);
-// }
+    // Reject a requisition
+    $res = approveStoreRequisition($requisition_id, $approver_id, $approver_note, $requisition_reject); 
 
-// // Delete a User
-// if ($action === 'delete_user') {
-//     // View the variables // print_r($_POST);
+    if ($res === 1) {
+        $result = array( 'code' => 0, 'message' => 'Requisition successfully rejected.' );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Incorrect status.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Unable to update requisition.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            default:
+                $result = array( 'code' => 4, 'message' => 'Unknown error.' );
+        }
+    }
 
-//     $id = isset($_POST['id']) ? $_POST['id'] : false;
-//     if ($id) {
-//         $res = deleteUser($id);
-//         if ($res === 0) {
-//             $result = array( 'code' => 0, 'message' => 'User successfully deleted.' );
-//         }
-//         else {
-//             if ($res === -1) {
-//                 $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
-//             }
-//             else if ($res === -2) {
-//                 $result = array( 'code' => 2, 'message' => 'Unable to delete user.' );
-//             }
-//             else {
-//                 $result = array( 'code' => 3, 'message' => 'Unknown error.' );
-//             }
-//         }
-//     }
-//     else {
-//         $result = array( 'code' => 4, 'message' => 'Invalid ID' );
-//     }
+    echo json_encode($result);
+}
 
-//     echo json_encode($result);
-// }
+// StoreKeeper Complete requisition
+if (isset($_POST["requisition_complete"])) {
+    // print_r($_POST);
+
+    $requisition_complete = $_POST["requisition_complete"];   // 3 = complete
+    $requisition_id = $_POST["requisition_approval_id"];
+    $domain_id = $_POST["requisition_domain_id"];
+    $subdom_id = $_POST["requisition_subdom_id"];
+    $storekeeper_id = $_POST["requisition_storekeeper_id"];
+    $storekeeper_note = $_POST["requistion_store_notes"];
+
+    // Complete the requisition
+    $res = completeStoreRequisition($requisition_id, $domain_id, $subdom_id, $storekeeper_id, $storekeeper_note, $requisition_complete);
+
+    if ($res === 0) {
+        $result = array( 'code' => 0, 'message' => 'Store requisition completed (items released).' );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Incorrect status received.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Unable to update requisitions.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            case -4: 
+                $result = array( 'code' => 4, 'message' => 'Unable to find any related requisition line items.' );
+                break;
+            case -5: 
+                $result = array( 'code' => 5, 'message' => 'Unable to find sku in stock.' );
+                break;
+            case -6: 
+                $result = array( 'code' => 6, 'message' => 'Insufficient stock to meet the requisition demands.' );
+                break;
+            case -7: 
+                $result = array( 'code' => 7, 'message' => 'The requisition has not been approved.' );
+                break;
+            case -8: 
+                $result = array( 'code' => 8, 'message' => 'The requisition has already been completed.' );
+                break;
+            case -9: 
+                $result = array( 'code' => 9, 'message' => 'Not approved (other problem with the requisition).' );
+                break;
+            case -10: 
+                $result = array( 'code' => 10, 'message' => 'Invalid requisition.' );
+                break;
+            default:
+                $result = array( 'code' => 11, 'message' => 'Unknown error.' );
+        }
+    }
+
+    echo json_encode($result);
+}
+
+// StoreKeeper Reject requisition
+if (isset($_POST["requisition_store_reject"])) {
+    // print_r($_POST);
+
+    $requisition_store_reject = $_POST["requisition_store_reject"];   // 5 = storekeeper reject
+    $requisition_id = $_POST["requisition_approval_id"];
+    $domain_id = $_POST["requisition_domain_id"];
+    $subdom_id = $_POST["requisition_subdom_id"];
+    $storekeeper_id = $_POST["requisition_storekeeper_id"];
+    $storekeeper_note = $_POST["requistion_store_notes"];
+
+    // Storekeeper Reject the requisition
+    $res = completeStoreRequisition($requisition_id, $domain_id, $subdom_id, $storekeeper_id, $storekeeper_note, $requisition_store_reject);
+
+    if ($res === 1) {
+        $result = array( 'code' => 0, 'message' => 'Store requisition rejected successfully.' );
+    }
+    else {
+        switch ($res) {
+            case -1: 
+                $result = array( 'code' => 1, 'message' => 'Incorrect status received.' );
+                break;
+            case -2: 
+                $result = array( 'code' => 2, 'message' => 'Unable to update requisitions.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Unable to connect to db.' );
+                break;
+            case -4: 
+                $result = array( 'code' => 4, 'message' => 'Unable to find any related requisition line items.' );
+                break;
+            case -5: 
+                $result = array( 'code' => 5, 'message' => 'Unable to find sku in stock.' );
+                break;
+            case -6: 
+                $result = array( 'code' => 6, 'message' => 'Insufficient stock to meet the requisition demands.' );
+                break;
+            case -7: 
+                $result = array( 'code' => 7, 'message' => 'The requisition has not been approved.' );
+                break;
+            case -8: 
+                $result = array( 'code' => 8, 'message' => 'The requisition has already been completed.' );
+                break;
+            case -9: 
+                $result = array( 'code' => 9, 'message' => 'Not approved (other problem with the requisition).' );
+                break;
+            case -10: 
+                $result = array( 'code' => 10, 'message' => 'Invalid requisition.' );
+                break;
+            default:
+                $result = array( 'code' => 11, 'message' => 'Unknown error.' );
+        }
+    }
+
+    echo json_encode($result);
+}
 
 ?>

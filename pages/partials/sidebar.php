@@ -101,7 +101,9 @@
         <div id="collapseOrg" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-custom1 py-2 collapse-inner rounded">
                 <a class="collapse-item" href="./main.php?dir=orgs&page=list_domains">Domains</a>
+                <a class="collapse-item" href="./main.php?dir=orgs&page=list_subdoms">Subdomains</a>
                 <a class="collapse-item" href="./main.php?dir=orgs&page=list_orgs">Organizations</a>
+                <a class="collapse-item" href="./main.php?dir=staff&page=list_staff">Members</a>
                 <a class="collapse-item" href="./main.php?dir=orgs&page=list_store_units">Store Units</a>
             </div>
         </div>
@@ -120,7 +122,8 @@
                 <!-- <a class="collapse-item" href="./dashboard.php?page=add_order_requisition">Create Purchase Order</a> -->
                 <!-- <a class="collapse-item" href="./dashboard.php?page=add_order_requisition">Add Order Requisition</a> -->
                 <!-- <a class="collapse-item" href="./dashboard.php?page=list_vendors_products">Add Vendor</a> -->
-                <a class="collapse-item" href="./main.php?dir=vendor_pos&page=list_pos">Purchase Orders</a>
+                <!-- <a class="collapse-item" href="./main.php?dir=vendor_pos&page=list_iorders">Inline Order</a> -->
+                <a class="collapse-item" href="./main.php?dir=vendor_pos&page=list_porders">Purchase Orders</a>
                 <a class="collapse-item" href="./main.php?dir=vendor_reqs&page=list_preqs">Purchase Requisitions</a>
                 <a class="collapse-item" href="./main.php?dir=vproducts&page=list_vproducts">Vendor Products</a>
                 <a class="collapse-item" href="./main.php?dir=vendors&page=list_vendors">Vendors</a>
@@ -141,6 +144,7 @@
                 <!-- <a class="collapse-item" href="./dashboard.php?page=add_purchase_order">Add Purchase Order</a> -->
                 <!-- <a class="collapse-item" href="./dashboard.php?page=add_requisition">Add Requisition</a> -->
                 <!-- <a class="collapse-item" href="./dashboard.php?page=add_customer">Add Customer</a> -->
+                <a class="collapse-item" href="./main.php?dir=customer_pos&page=list_iorders">Inline Order</a>
                 <a class="collapse-item" href="./main.php?dir=customer_pos&page=list_porders">Purchase Orders</a>
                 <a class="collapse-item" href="./main.php?dir=customer_reqs&page=list_preqs">Purchase Requisitions</a>
                 <a class="collapse-item" href="./main.php?dir=store_reqs&page=list_requisitions">Store Requisitions</a>
@@ -177,9 +181,9 @@
                 <!-- <a class="collapse-item" href="./dashboard.php?page=add_user">Add User</a>
                 <a class="collapse-item" href="./dashboard.php?page=add_staff">Add Staff</a> -->
                 <a class="collapse-item" href="./main.php?dir=orgs&page=list_dom_operators">Domain Operators</a>
-                <a class="collapse-item" href="./main.php?dir=users&page=list_subdoms">User Subdomains</a>
+                <a class="collapse-item" href="./main.php?dir=subdom_users&page=list_subdom_users">Subdomain Users</a>
                 <a class="collapse-item" href="./main.php?dir=users&page=list_users">Users</a>
-                <a class="collapse-item" href="./main.php?dir=staff&page=list_staff">Staff</a>
+                
             </div>
         </div>
     </li>

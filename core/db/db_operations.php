@@ -22,7 +22,7 @@ class DBOperation {
     }
 
     function die_error() {
-        die(mysqli_error($this->con)); // Diagnostic
+        die(mysqli_error($this->cn)); // Diagnostic
     }
 
     function createTable($name, $recreate, $queryParams) {
@@ -99,6 +99,20 @@ class DBOperation {
         }
         $stmt->close();
         return false;
+    }
+
+    function sqlDelete2($query, $format = false, ...$vars) { // same as update, created for completeness
+        $stmt = $this->cn->prepare($query);
+        if($format) {
+            $stmt->bind_param($format, ...$vars);
+        }
+        if($stmt->execute()) {
+            $affected_rows = $stmt->affected_rows;
+            $stmt->close();
+            return $affected_rows;
+        }
+        $stmt->close();
+        return 0;
     }
 
     function sqlExecute($query, $format = false, ...$vars) {

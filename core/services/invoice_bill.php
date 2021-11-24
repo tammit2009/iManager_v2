@@ -28,30 +28,33 @@ class PDF extends FPDF {
     }
 }
 
-// Order Invoice
+// Vendor Purchase Order Invoice
 
-if (isset($_GET["order_id"])) {
-    //echo "INVOICE_BILL for order ". $_GET['order_id'];
+if (isset($_GET["vpo_id"])) {
+    // echo "INVOICE_BILL for order ". $_GET['vpo_id'];
 
     $opr = new DBOperation();
 
-    // Order query
-    $order_res = $opr->sqlSelect("SELECT orders.order_no, orders.order_date, 
-                (SELECT vendors.company_name FROM vendors WHERE orders.vendor_id = vendors.id) as vendor, 
-                (SELECT users.name FROM users WHERE orders.requester_id = users.id) as requester, 
-                orders.status, orders.sub_total, orders.net_total, orders.paid, orders.payment_method, 
-                orders.shipping_method, orders.shipping_cost, orders.vat, orders.due, orders.discount
-                FROM orders WHERE orders.id = ".$_GET['order_id']);
+    // Vendor Purchase Order query
+    $porder_res = $opr->sqlSelect("SELECT porder_no, porder_date, 
+                            (SELECT name FROM organizations WHERE vendor_porders.vendor_id = organizations.id) as vendor, 
+                            (SELECT name FROM users WHERE vendor_porders.requester_id = users.id) as requester, 
+                            status, sub_total, net_total, paid, payment_method, 
+                            shipping_method, shipping_cost, vat, due, discount
+                            FROM vendor_porders WHERE vendor_porders.id = ".$_GET['vpo_id']);
 
-    // Order line item query
-    $order_line_res = $opr->sqlSelect("SELECT orders.order_no, (SELECT short_descr FROM vendors_products 
-                        WHERE oli.vendor_product_id = vendors_products.id) as product_descr, 
-                        (SELECT sku FROM vendors_products WHERE oli.vendor_product_id = vendors_products.id) as sku, 
-                        oli.quantity, oli.unit_price, oli.total_cost 
-                        FROM order_line_items as oli INNER JOIN orders ON oli.order_id = orders.id 
-                        WHERE orders.id = ". $_GET['order_id']);
+    // Vendor Purchase Order line item query
+    $porder_line_res = $opr->sqlSelect("SELECT vendor_porders.porder_no, 
+                        (SELECT product_name_descr FROM vendors_products 
+                            WHERE vpli.vendor_product_id = vendors_products.id) as product_descr, 
+                        (SELECT provisional_sku FROM vendors_products 
+                            WHERE vpli.vendor_product_id = vendors_products.id) as sku, 
+                        vpli.quantity, vpli.unit_price, vpli.total_cost 
+                        FROM vendor_porder_line_items as vpli INNER JOIN vendor_porders 
+                        ON vpli.porder_id = vendor_porders.id 
+                        WHERE vendor_porders.id = ". $_GET['vpo_id']);
 
-    $order = mysqli_fetch_assoc($order_res);
+    $porder = mysqli_fetch_assoc($porder_res);
 
     $pdf = new PDF('p', 'mm', 'A4');   // use new class
 
@@ -121,19 +124,19 @@ if (isset($_GET["order_id"])) {
     $pdf->SetFont('Arial', '', 12);
 
     $i = 1;
-    while ($row = mysqli_fetch_assoc($order_line_res)) {
+    while ($row = mysqli_fetch_assoc($porder_line_res)) {
         // Numbers are right aligned so we give 'R' after new line parameter
         $pdf->Cell(130, 5, $row['product_descr'], 1, 0);
         $pdf->Cell(25, 5, '-', 1, 0); 
         $pdf->Cell(34, 5, $row['total_cost'], 1, 1, 'R');       // end of line
     }
-    $order_line_res->free_result();
+    $porder_line_res->free_result();
     
     // Summary
     $pdf->Cell(130, 5, '', $guideBorder, 0);
     $pdf->Cell(25, 5, 'Subtotal', $guideBorder, 0); 
     $pdf->Cell(6, 5, 'N', 1, 0); 
-    $pdf->Cell(28, 5, $order['sub_total'], 1, 1, 'R');       // end of line
+    $pdf->Cell(28, 5, $porder['sub_total'], 1, 1, 'R');       // end of line
     
     $pdf->Cell(130, 5, '', $guideBorder, 0);
     $pdf->Cell(25, 5, 'Taxable', $guideBorder, 0); 
@@ -148,7 +151,7 @@ if (isset($_GET["order_id"])) {
     $pdf->Cell(130, 5, '', $guideBorder, 0);
     $pdf->Cell(25, 5, 'Total Due', $guideBorder, 0); 
     $pdf->Cell(6, 5, 'N', 1, 0); 
-    $pdf->Cell(28, 5, $order['net_total'], 1, 1, 'R');          // end of line
+    $pdf->Cell(28, 5, $porder['net_total'], 1, 1, 'R');          // end of line
 
     $opr->close();
 
@@ -156,16 +159,16 @@ if (isset($_GET["order_id"])) {
     //   "I": send file inline to browser (default); "D": send to browser and force a file download
     //   "F": save to a local file with the name given by name
     //   "S": return the document as a string
-    $pdf->Output("../../public/invoices/PDF_INVOICE_". $_GET["order_id"] .".pdf", "F"); 
+    $pdf->Output("../../public/invoices/PDF_INVOICE_". $_GET["vpo_id"] .".pdf", "F"); 
     $pdf->Output();
 
     exit;
 }
 
 
-// Purchase Order Invoice
+// Customer Purchase Order Invoice
 
-if ($_GET["po_id"]) {
+if ($_GET["cpo_id"]) {
     //echo "INVOICE_BILL for po ". $_GET['po_id'];
 
     $opr = new DBOperation();
@@ -176,13 +179,13 @@ if ($_GET["po_id"]) {
                                     po.sub_total, po.vat, po.discount, po.net_total, po.shipping_method, po.shipping_cost, 
                                     po.payment_method, po.paid, po.due, po.status 
                                     FROM `customer_porders` as po INNER JOIN `organizations` as c 
-                                    ON po.customer_id = c.id WHERE po.id=".$_GET['po_id']);
+                                    ON po.customer_id = c.id WHERE po.id=".$_GET['cpo_id']);
 
     // Order line item query
     $porder_line_res = $opr->sqlSelect("SELECT pli.id, pli.porder_id, pli.catalog_product_id, p.sku, p.brand_id, 
                                         p.category_id, p.unit, p.short_descr, pli.quantity, pli.unit_price, pli.total_cost 
                                         FROM `customer_porder_line_items` as pli INNER JOIN products as p 
-                                        ON pli.catalog_product_id = p.id WHERE pli.porder_id=". $_GET['po_id']);
+                                        ON pli.catalog_product_id = p.id WHERE pli.porder_id=". $_GET['cpo_id']);
 
     $porder = mysqli_fetch_assoc($porder_res);
 
@@ -289,7 +292,7 @@ if ($_GET["po_id"]) {
     //   "I": send file inline to browser (default); "D": send to browser and force a file download
     //   "F": save to a local file with the name given by name
     //   "S": return the document as a string
-    $pdf->Output("../../public/invoices/PDF_INVOICE_". $_GET["po_id"] .".pdf", "F"); 
+    $pdf->Output("../../public/invoices/PDF_INVOICE_". $_GET["cpo_id"] .".pdf", "F"); 
     $pdf->Output();
 
     exit;

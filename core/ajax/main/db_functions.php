@@ -388,6 +388,71 @@ function deletePagrRole($pagr_id, $role_id) {
  *
  */
 
+function getAllUsers() {
+    $users = array();
+
+    $userId = $_SESSION['userid'];
+
+    $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $userDomain = getDomainByName($userDomainName);
+    $userSubDoms = getSubDomsByUserId($userId);
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, email, password, domain, groupid, verified FROM users";
+        
+        // Restrict view of all users only to admins
+        if (!isRoleInGroup('admin', $userGroupId)) {
+            // Restrict view only to user's provisioned subdomains
+            $sql .= " WHERE domain='" . $userDomain['id'] ."'";
+            // $sql .= " AND sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        }
+
+        $res = $opr->sqlSelect($sql);
+
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $users[] = $row;
+            }
+            $res->free_result();
+        }
+        $opr->close();
+
+        return $users;
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function getUserDomain($userId) {
+    $domain = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $res = $opr->sqlSelect('SELECT name, domain FROM `users` 
+                                WHERE id=?', 'i', $userId);
+
+        if ($res && $res->num_rows === 1) {
+            while ($row = $res->fetch_assoc()) {
+                $domain[] = $row;
+            }
+            return $domain;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
 function saveUser($post, $files) {
 
     // Enable trapping exception in try...catch..
@@ -454,13 +519,52 @@ function saveUser($post, $files) {
         // echo "UPDATE users SET ".$data . " WHERE id = " . $id;
 
         try {
+            // Prepare event
+            $timestamp = date('Y-m-d H:i:s', time());
+            $category = "user_access";
+            $table_str = "user";
+            $xinfo = "";
+            $route = "";
+            $status = "complete";
+
+            // Get the selected domain's default subdomain
+            $default_subdom = getDefaultSubDomById($domain);
+            $subdom_id = $default_subdom['id'];
+
             if(empty($id)){
                 $id = $opr->sqlInsert("INSERT INTO users SET $data");
+
+                // TODO: handle cases of success and failure
+
+                // insert user into selected domain's default subdomain
+                $opr->sqlInsert('INSERT INTO subdomains_users VALUES (NULL, ?, ?, "")', 'ii', $id, $subdom_id);
+
+                // Event
+                $creator = $id;
+                $type = "account_create";                    // request type 3
+                $action = "account_created";
+
             } else {
-                //echo $data;
-                $id = $opr->sqlUpdate("UPDATE users SET $data WHERE id = ?", 'i', $id);
+                $opr->sqlUpdate("UPDATE users SET $data WHERE id = ?", 'i', $id);
+
+                // TODO: handle cases of success and failure
+
+                // delete the user from any old subdomain
+                $opr->sqlDelete("DELETE FROM subdomains_users WHERE user_id = ?", 'i', $id);
+                // insert user into selected domain's default subdomain
+                $opr->sqlInsert('INSERT INTO subdomains_users VALUES (NULL, ?, ?, "")', 'ii', $id, $subdom_id);
+
+                // Event
+                $creator = $id;
+                $type = "account_update";                    // request type ?
+                $action = "account_updated";
             }
-            if($id){
+
+            if($id) {
+
+                // Emit an account created or update event using the controller
+                addEvent($creator, $timestamp, $type, $category, $table_str, $id, $action, $status, $route, $xinfo); // true on success  
+
                 return $id;       // saved user successfully
             }    
         }
@@ -503,6 +607,45 @@ function deleteUser($id) {
  *
  */
 
+function getAllDomains() {
+    $domains = array();
+
+    $userId = $_SESSION['userid'];
+    $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    $userDomain = getDomainByName($userDomainName);
+    $userSubDoms = getSubDomsByUserId($userId);
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, description FROM domains";
+        
+        // Restrict view of all users only to admins
+        if (!isRoleInGroup('admin', $userGroupId)) {
+            // Restrict view only to user's provisioned subdomains
+            $sql .= " WHERE id='" . $userDomain['id'] ."'";
+            // $sql .= " AND sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        }
+
+        $res = $opr->sqlSelect($sql);
+
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $domains[] = $row;
+            }
+            $res->free_result();
+        }
+        $opr->close();
+
+        return $domains;
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
 function getDomainById($domainId) {
     $domain = array();
 
@@ -532,7 +675,10 @@ function createNewDomain($domain_name, $description) {
 
         // If successful, create the default 'main' subdomain
         if ($id > 0) {
-            $opr->sqlInsert( "INSERT INTO `subdomains` VALUES (NULL, 'main', ?, 'Default subdomain')", 'i', $id);
+            $opr->sqlInsert( "INSERT INTO `subdomains` VALUES (NULL, 'main', ?, 'default', 'Default sub-domain')", 'i', $id);
+        }
+        else {
+            return -2;  // Unable to create default subdomain
         }
 
         return $id;
@@ -612,6 +758,25 @@ function getSubDomById($domainId, $subdomid) {
     }
 }
 
+function getDefaultSubDomById($domainId) {
+    $subdomain = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM subdomains WHERE parent_domain_id=? AND type=?', 'is', $domainId, 'default');
+        if ($res && $res->num_rows > 0) {
+            $subdomain = $res->fetch_assoc();   // Fetch only the first default (if by mistake there are multiple)
+            return $subdomain;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
 function getSubDomsByDomainId2($domainId) {
     $subdoms = array();
 
@@ -642,8 +807,24 @@ function addSubDomToDomain($domainId, $subDomName, $subDomDescr) {
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
 
-        $id = $opr->sqlInsert(  "INSERT INTO `subdomains` VALUES (NULL, ?, ?, ?)", 
-                                'sis', $subDomName, $domainId, $subDomDescr);
+        $id = $opr->sqlInsert(  "INSERT INTO `subdomains` VALUES (NULL, ?, ?, ?, ?)", 
+                                'siss', $subDomName, $domainId, 'extension', $subDomDescr);
+        return $id;
+        $opr->close();
+    }
+    else {
+        return -2;      // Failed to connect to database
+    }     
+}
+
+function addDefaultSubDomToDomain($domainId) {
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $id = $opr->sqlInsert(  "INSERT INTO `subdomains` VALUES (NULL, ?, ?, ?, ?)", 
+                                'siss', 'main', $domainId, 'default', 'Default sub-domain');
         return $id;
         $opr->close();
     }
@@ -676,7 +857,9 @@ function deleteSubdomain($domain_id, $subdom_id) {
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
-        if ($opr->sqlDelete('DELETE FROM subdomains WHERE parent_domain_id=? AND id=?', 'ii', $domain_id, $subdom_id)) {
+
+        $sql = "DELETE FROM subdomains WHERE parent_domain_id=? AND id=? AND type != 'default'";
+        if ($opr->sqlDelete2($sql, 'ii', $domain_id, $subdom_id)) {
             return 0;
         }
         else {
@@ -914,6 +1097,30 @@ function getAllVendors() {
 
 }
 
+function getVendorById($vendorId) {
+    $vendor = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $res = $opr->sqlSelect('SELECT name, domain_id FROM `organizations` 
+                                WHERE id=?', 'i', $vendorId);
+
+        if ($res && $res->num_rows === 1) {
+            while ($row = $res->fetch_assoc()) {
+                $vendor = $row;
+            }
+            return $vendor;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
 function getVendorDomain($vendorId) {
     $domain = array();
 
@@ -937,5 +1144,115 @@ function getVendorDomain($vendorId) {
         return -1;      // Failed to connect to database
     }
 }
+
+
+/*
+ * Manage Subdomain Users
+ *
+ */
+
+function saveSubDomUser($post) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('id', 'domainid', 'manageSubDomUser', 'edit_subdom_userid', 
+            'edit_subdomid', 'edit_userid')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'subdomid') $k = 'sub_dom_id';
+            if ($k === 'userid') $k = 'user_id';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // Handle disabled select functionality which does not send userid
+    if(!empty($edit_userid) && !isset($userid)){
+        $user_id = $edit_userid;
+    }
+    else {
+        $user_id = $userid;
+    }
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the subdomain has not already been associated
+        $sql = "SELECT * FROM subdomains_users WHERE user_id=? AND sub_dom_id=?";
+        if (empty($id)) {
+            $check = $opr->sqlSelect($sql, 'ii', $user_id, $subdomid)->num_rows;
+        }
+        else {
+            $sql .= " AND id != ?";
+            $check = $opr->sqlSelect($sql, 'iii', $user_id, $subdomid, $id)->num_rows;
+        }
+    
+        if($check > 0){
+            // echo "already associated";
+            return -2;   //  subdomain has already been associated
+        }
+
+        // echo "INSERT INTO subdomains_users SET ".$data;
+        // echo "UPDATE users SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO subdomains_users SET $data");
+            } else {
+                //echo $data;
+                $id = $opr->sqlUpdate("UPDATE subdomains_users SET $data WHERE id = ?", 'i', $id);
+            }
+            if($id){
+                return $id;       // saved user successfully
+            } 
+            else {
+                return -3;        // unable to insert user in db
+            }   
+        }
+        catch (Exception $e) {
+            return -4;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    } 
+}
+
+function deleteSubDomUser($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties to page_access_level
+        
+        if ($opr->sqlDelete('DELETE FROM subdomains_users WHERE id=?', 'i', $id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete subdomain user
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
 
 ?>

@@ -26,11 +26,13 @@ function createAccount($name, $email, $password) {
     if ($opr->dbConnected()) {
         // First hash the password
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $id = $opr->sqlInsert('INSERT INTO users VALUES (NULL, ?, ?, ?, "Default", 1, 0, "no-image-available.svg", CURRENT_TIMESTAMP)', 
+
+        // Insert the new user with the 'default' domain (1)
+        $id = $opr->sqlInsert('INSERT INTO users VALUES (NULL, ?, ?, ?, 1, 1, 0, "no-image-available.svg", CURRENT_TIMESTAMP)', 
                                 'sss', 
                                 $name, $email, $hash);
 
-        // Emit an account created event using the controller
+        // Prepare event
         $creator = $id;
         $timestamp = date('Y-m-d H:i:s', time());
         $type = "account_create";                    // request type 3
@@ -38,11 +40,27 @@ function createAccount($name, $email, $password) {
         $table_str = "user";
         $xinfo = "";
         $action = "account_created";
-        $status = "complete";
         $route = "";
-        addEvent($creator, $timestamp, $type, $category, $table_str, $id, $action, $status, $route, $xinfo); // true on success  
 
-        return $id;
+        if ($id > 0) {
+            // Insert the new user into 'default' domain's default subdomain (1) as well
+            $iid = $opr->sqlInsert('INSERT INTO subdomains_users VALUES (NULL, ?, 1, "")', 'i', $id);
+            if ($iid > 0) {
+                $status = "complete";
+                // Emit an account created event using the controller
+                addEvent($creator, $timestamp, $type, $category, $table_str, $id, $action, $status, $route, $xinfo); // true on success  
+                return $id;
+            }
+            else {
+                $status = "incomplete";
+                addEvent($creator, $timestamp, $type, $category, $table_str, $id, $action, $status, $route, $xinfo); // true on success  
+                return -3;  // Failed to insert user into default subdomain
+            }
+        }
+        else {
+            return -2;  // Unable to create new user
+        }
+
         $opr->close();
     }
     else {
