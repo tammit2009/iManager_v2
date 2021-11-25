@@ -35,12 +35,12 @@ function createAccount($name, $email, $password) {
         // Prepare event
         $creator = $id;
         $timestamp = date('Y-m-d H:i:s', time());
-        $type = "account_create";                    // request type 3
+        $type = "info";                    // request type 3 (account_create)
         $category = "user_access";
-        $table_str = "user";
+        $table_str = "users";
         $xinfo = "";
-        $action = "account_created";
-        $route = "";
+        $action = "create_account";
+        $route = "account_created";
 
         if ($id > 0) {
             // Insert the new user into 'default' domain's default subdomain (1) as well

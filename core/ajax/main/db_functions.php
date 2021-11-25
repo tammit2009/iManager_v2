@@ -1255,4 +1255,30 @@ function deleteSubDomUser($id) {
 }
 
 
+
+/*
+ * Manage Vendor Products
+ *
+ */
+
+function getVendorProductById($vprodId) {
+    $vproduct = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM vendors_products WHERE id=?', 'i', $vprodId);
+        if ($res && $res->num_rows === 1) {
+            $vproduct = $res->fetch_assoc();
+            return $vproduct;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+
 ?>

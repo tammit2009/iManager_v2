@@ -186,8 +186,9 @@ if (isset($_POST["get_recent_events"])) {
         exit($response); 
     }
 
-    $query = "SELECT id, created_on, type, category, table_str, table_id, action, status, route,
-                (SELECT name FROM users WHERE id=generated_by) as user, generated_by, xinfo 
+    $query = "  SELECT id, created_on, type, category, table_str, table_id, action, status, route,
+                (SELECT name FROM users WHERE id=generated_by) as user, 
+                generated_by, xinfo 
                 FROM `ims_events` WHERE category = 'user_access'";            
 
     $results = $opr->sqlSelect($query);
@@ -522,7 +523,7 @@ if (isset($_POST['get_count_of_customers'])) {
     if (!$opr->dbConnected()) {
         exit(json_encode(array("msg" => "Error connecting"))); 
     }
-    $query =   "SELECT count(id) as num_customers FROM customers LIMIT 1";
+    $query =   "SELECT count(id) as num_customers FROM organizations WHERE type='customer' LIMIT 1";
     $result = $opr->sqlSelect($query);
     if ($result && $result->num_rows === 1) {
         $count = $result->fetch_assoc();
@@ -541,7 +542,7 @@ if (isset($_POST['get_vendor_by_id'])) {
     }
 
     $vid = $_POST['get_vendor_by_id'];
-    $query = "SELECT company_name as vendor FROM vendors WHERE id=? LIMIT 1";
+    $query = "SELECT name as vendor FROM organizations WHERE id=? LIMIT 1";
     $result = $opr->sqlSelect($query, "i", $vid);
     if ($result && $result->num_rows === 1) {
         $vendor = $result->fetch_assoc();
@@ -558,7 +559,7 @@ if (isset($_POST['get_count_of_vendors'])) {
     if (!$opr->dbConnected()) {
         exit(json_encode(array("msg" => "Error connecting"))); 
     }
-    $query =   "SELECT count(id) as num_vendors FROM vendors LIMIT 1";
+    $query =   "SELECT count(id) as num_vendors FROM organizations WHERE type='vendor' LIMIT 1";
     $result = $opr->sqlSelect($query);
     if ($result && $result->num_rows === 1) {
         $count = $result->fetch_assoc();

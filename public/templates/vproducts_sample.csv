@@ -1,4 +1,4 @@
-brand,category,product_name_descr,feature,unit,lot,qty_per_offer,offer_price,offer_date,attributes,serial_no,ipc,batch_no,produced_on,expires_on
-Airwick,Air Freshener,Air wick Freshmatic Refill Air Freshener - Sparkling Citrux,500ml,refill,ea,1,2049.5,,,,,,,
-Clearasil,Soaps and Detergents,Clearasil Shower Gel,130ml/0.6kg,bottle,ea,1,3970,,,,,,,
-Milo,Teas and Beverages,Nestle Milo 20g,20g,satchet,ea,1,65,,,,,,,
+brand,category,product_name_descr,feature,unit,lot,qty_per_offer,offer_price
+Airwick,Air Freshener,Air wick Freshmatic Refill Air Freshener - Sparkling Citrux,500ml,refill,ea,1,2049.5
+Clearasil,Soaps and Detergents,Clearasil Shower Gel,130ml/0.6kg,bottle,ea,1,3970
+Milo,Teas and Beverages,Nestle Milo 20g,20g,satchet,ea,1,65

@@ -81,12 +81,12 @@ $(document).ready(function() {
     $('#listGroups').DataTable();     // initialize the datatable
 
     // Status Messages
-    <?php if (isset($_SESSION['status'])): ?>
+    <?php //if (isset($_SESSION['status'])): ?>
         // swal
-        createAutoClosingAlert("#alert-msg", "<?php echo flash('msg'); ?>", "<?php echo flash('status'); ?>", 4000);
+        //createAutoClosingAlert("#alert-msg", "</?php echo flash('msg'); ?>", "<?php echo flash('status'); ?>", 4000);
         // toastr (if required instead)
         // toastr.success("</?php echo flash('status'); ?>");
-    <?php endif; ?>
+    <?php //endif; ?>
 
     // Delete Group
     $('#listGroups').delegate('.delete_group', 'click', function(e) {

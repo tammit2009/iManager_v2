@@ -128,7 +128,7 @@
     <div class="col-md-4 px-1 pr-2">
         <div class="row row-cols-1 row-cols-md-1 no-gutters">  <!-- border_top_custom -->
             <div>
-                <div class="card rounded-0" style="height:250px">
+                <div class="card rounded-0" style="height:203px">
                     <div class="card-body">
                         <table class="table" id="stock_by_status">
                             <tbody id="stock_by_status_items">

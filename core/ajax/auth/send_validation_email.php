@@ -22,7 +22,7 @@ function sendValidationEmail($email) {
 
                         // Prepare the email in format: https://localhost/imanager/validate/52/U1Cl0lFf2T-M8FEKatrMMA
                         // ( tmp: http://localhost/imanager/auth.php?page=validate_email&reqid=52&verify=U1Cl0lFf2T-M8FEKatrMMA )
-                        $validation_url = "http://localhost/imanager/auth.php?page=validate_email&reqid=".$requestID.'&verify='.urlSafeEncode($verifyCode);
+                        $validation_url = DOMAIN."/auth.php?page=validate_email&reqid=".$requestID.'&verify='.urlSafeEncode($verifyCode);
                         
                         // Send Email
                         if (sendGridEmail(  $email, 

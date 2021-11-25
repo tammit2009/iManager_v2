@@ -2,6 +2,17 @@
 include_once('../../security.php');
 include_once('db_functions.php');
 
+// Fetch Vendor Product By Id
+if (isset($_GET["getVendorProductById"])) {
+    if (isset($_GET["vprodid"])) {
+        $result = getVendorProductById($_GET['vprodid']); 
+        echo json_encode($result);
+    }
+    else {
+        echo json_encode(array());  // return empty
+    }
+}
+
 // upload products csv
 if (isset($_POST["uploadVProductsCsv"])) {
 

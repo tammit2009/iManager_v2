@@ -2817,6 +2817,43 @@ function importVProductCsv() {
     });
 }
 
+// Manage the Unknow Vendor Product Modal
+
+function getVendorProductById(vprodId) {
+    // alert("Vendor Product Id: " + vprodId);
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'GET',
+        data: { "getVendorProductById": 1, "vprodid": vprodId},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
+
+            var vproduct_id = response.id;
+            //var vproduct_name = response.name;
+            var vproduct_brand = response.brand;
+            var vproduct_category = response.category;
+            var vproduct_description = response.product_name_descr;
+            var vproduct_unit = response.unit;
+            var vproduct_lot = response.lot;
+            var vproduct_psku = response.provisional_sku;
+
+            $("#edit_vproduct_form #vproduct_id").html(vproduct_id);
+            // $("#edit_vproduct_form #vproduct_name").val(vproduct_name);
+            $("#edit_vproduct_form #vproduct_brand").html(vproduct_brand);
+            $("#edit_vproduct_form #vproduct_category").html(vproduct_category);
+            $("#edit_vproduct_form #vproduct_description").html(vproduct_description);
+            $("#vproduct_description_input").val(vproduct_description);
+            $("#edit_vproduct_form #vproduct_pkgunit").html(vproduct_unit);
+            $("#edit_vproduct_form #vproduct_pkglot").html(vproduct_lot);
+            $("#edit_vproduct_form #vproduct_psku").html(vproduct_psku);
+        }
+    });
+}
+
 
 /*
  * Manage Subdomain Users
@@ -3678,14 +3715,14 @@ function recalculateInlineOrderDiscount(elem) {
 }
 
 function recalculateInlineOrderPaidAmt(elem) {
-    var paid = $(this).val();
+    var paid = $(elem).val();
     var discount = $("#iorder_discount").val();
     var shipping = $("#iorder_shipping").val();
     calculate_inline_order(discount, paid, shipping);
 }
 
 function recalculateInlineOrderShipping(elem) {
-    var shipping = $(this).val();
+    var shipping = $(elem).val();
     var paid = $("#iorder_paid_amount").val();
     var discount = $("#iorder_discount").val();
     calculate_inline_order(discount, paid, shipping);

@@ -1067,7 +1067,7 @@ function fetch_all_categories() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT categories.name, categories.parent_id, categories.description, 
+        $sql = "SELECT categories.name, categories.parent_id, categories.description, catalog_symbol, 
                 categories.created_on, users.name as created_by FROM categories INNER JOIN users 
                 ON categories.created_by = users.id";
 
@@ -1742,6 +1742,58 @@ function fetch_all_vendor_products_join_products() {
         $opr->close();
 
         return $vproducts;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetch_all_pkg_unit_types() {
+    $package_types = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, type, label, catalog_symbol, description 
+                FROM static_codes WHERE parent='products' AND type='packaging_unit'";
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $package_types[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $package_types;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetch_all_pkg_lot_types() {
+    $package_types = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, type, label, catalog_symbol, description 
+                FROM static_codes WHERE parent='products' AND type='packaging_lot'";
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $package_types[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $package_types;
     }
     else {
         return -1;                  // Failed to connect to database
