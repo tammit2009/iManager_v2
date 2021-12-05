@@ -31,10 +31,7 @@ $(document).ready(function(){
     }
 
 	window.uni_modal = function(title ='' , url='', size="") {
-
-		//const fqUrl = window.location.origin + '/imanager/pages/main/' + $url;
 		const fqUrl = window.location.origin + '/imanager/pages/' + url;
-		// alert(fqUrl);
 
 		// start_load()
 		

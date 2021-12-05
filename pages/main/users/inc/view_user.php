@@ -28,7 +28,7 @@ if(isset($_GET['id'])){
             <div class="container-fluid">
                 <dl>
                     <dt>Group</dt>
-                    <dd><?php echo $type_arr[$groupid] ?></dd>
+                    <dd><?php echo $group_name ?></dd>
                 </dl>
             </div>
         </div>

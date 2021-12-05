@@ -40,10 +40,13 @@ if (isset($_POST["createNewDomain"])) {
                 $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
                 break;
             case -2: 
-                $result = array( 'code' => 2, 'message' => 'FUnable to create default subdomain.' );
+                $result = array( 'code' => 2, 'message' => 'Unable to create default subdomain.' );
+                break; 
+            case -3: 
+                $result = array( 'code' => 3, 'message' => 'Domain name already used.' );
                 break; 
             default: 
-                $result = array( 'code' => 3, 'message' => 'Unknown error.' );
+                $result = array( 'code' => 4, 'message' => 'Unknown error.' );
         }
     }
 

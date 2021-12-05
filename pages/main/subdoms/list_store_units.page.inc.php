@@ -10,7 +10,7 @@
                 <div class="card-header-panel d-flex align-items-center justify-content-between">
                     <h4 class="my-1">List of Store Units</h4>
                     <a href="#" class="btn btn-block btn-sm btn-default btn-flat border-info" 
-                                data-toggle="modal" data-target="#createDomainModal">
+                                data-toggle="modal" data-target="#createStoreUnitModal">
                         <i class="fa fa-plus"></i> Add New Unit
                     </a>
                 </div>
@@ -29,6 +29,7 @@
                 <thead>
                     <tr>
                         <th class="text-center" style="width: 5%;">#</th>
+                        <th class="text-left" style="width: 15%;">Unit Name</th>
                         <th class="text-left" style="width: 20%;">Org. Name</th>
                         <th class="text-left" style="width: 20%;">Domain</th>
                         <th class="text-left" style="width: 15%;">SubDom</th>
@@ -44,6 +45,7 @@
 
                     <tr role="row" class="odd">
                         <td class="text-center"><?php echo $i; ?></td>
+                        <td class="text-left"><b><?php echo $row['storeunit']; ?></b></td>
                         <td class="text-left"><b><?php echo $row['org_name']; ?></b></td>
                         <td class="text-left"><b><?php echo $row['domain_name']; ?></b></td>
                         <td class="text-left"><b><?php echo $row['sub_dom']; ?></b></td>
@@ -53,11 +55,12 @@
                                 Action
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="./main.php?dir=orgs&amp;page=view_store_unit&amp;id=<?php echo $row['id']; ?>">View</a>
+                            <a class="dropdown-item view_store_unit" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
+                                <!-- <div class="dropdown-divider"></div> -->
+                                <!-- <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editStoreUnitModal" data-storeunitid="</?php echo $row['id']; ?>">Edit</a> -->
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editStoreUnitModal" data-subdomid="<?php echo $row['id']; ?>">Edit</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item delete_store_unit" id="delete_store_unit" href="javascript:void(0)" did="<?php echo $row['id']; ?>">Delete</a>
+                                <!-- <a class="dropdown-item delete_store_unit" id="delete_store_unit" href="javascript:void(0)" did="<?php echo $row['id']; ?>">Delete</a> -->
+                                <a class="dropdown-item delete_store_unit" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
                             </div>
                         </td>
                     </tr>
@@ -74,8 +77,10 @@
 </div>
 
 <!-- Modals -->
-<?php include('./pages/main/orgs/modals/create_domain_modal.php'); ?>
-<?php include('./pages/main/orgs/modals/edit_domain_modal.php'); ?>
+<?php include('./pages/main/subdoms/modals/create_storeunit_modal.php'); ?>
+<?php include('./pages/main/subdoms/modals/edit_storeunit_modal.php'); ?>
+<?php include('./pages/modals/confirm.php'); ?>
+<?php include('./pages/modals/uni_modal.php'); ?>
 
 <script> 
 $(document).ready(function() {
@@ -84,10 +89,15 @@ $(document).ready(function() {
 
     $('#listStoreUnits').DataTable();     // initialize the datatable
 
+    // View StoreUnit
+    $('.view_store_unit').click(function(){
+        // pull in the html view page with uni_modal
+		uni_modal("<i class='fa fa-id-card'></i> Store Unit Details", "main/subdoms/inc/view_storeunit.php?id=" + $(this).attr('data-id'));
+	});
+
     // Delete StoreUnit
-    $('#listStoreUnits').delegate('.delete_domain', 'click', function(e) {
-        var domainId = $(this).attr("did");
-        deleteDomain(domainId);
+    $('#listStoreUnits').delegate('.delete_store_unit', 'click', function(e) {
+        doConfirm("Are you sure to delete this store unit?", "deleteStoreUnit", [ $(this).attr('data-id') ])
     })
 
 });

@@ -80,14 +80,6 @@ $(document).ready(function() {
 
     $('#listGroups').DataTable();     // initialize the datatable
 
-    // Status Messages
-    <?php //if (isset($_SESSION['status'])): ?>
-        // swal
-        //createAutoClosingAlert("#alert-msg", "</?php echo flash('msg'); ?>", "<?php echo flash('status'); ?>", 4000);
-        // toastr (if required instead)
-        // toastr.success("</?php echo flash('status'); ?>");
-    <?php //endif; ?>
-
     // Delete Group
     $('#listGroups').delegate('.delete_group', 'click', function(e) {
         var groupId = $(this).attr("did");

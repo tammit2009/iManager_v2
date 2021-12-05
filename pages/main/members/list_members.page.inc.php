@@ -1,12 +1,12 @@
 <?php 
-    $staff = fetch_all_staff();
+    $members = fetch_all_members();
 ?>
 
 <div class="dashboard card my-2">
     <div class="card-header bg-white">
         <div class="card-header-panel d-flex align-items-center justify-content-between">
             <h3 class="my-0">Members</h3>
-            <a href="./main.php?dir=staff&page=add_staff" class="btn btn-block btn-sm btn-default btn-flat border-info">
+            <a href="./main.php?dir=members&page=add_member" class="btn btn-block btn-sm btn-default btn-flat border-info">
                 <i class="fa fa-plus"></i> Add New Member
             </a>
         </div>
@@ -16,11 +16,11 @@
         <!-- Status Messages -->
         <div id="alert-msg"></div>
 
-        <?php if ($staff == -1 || empty($staff)) {
+        <?php if ($members == -1 || empty($members)) {
             echo "No Record Found"; exit;
         } ?>
         
-        <table class="table tabe-hover table-bordered table-users" id="listStaff">
+        <table class="table tabe-hover table-bordered table-users" id="listMembers">
 
             <thead>
                 <tr>
@@ -36,7 +36,7 @@
             <tbody>
 
                 <?php $i = 1;
-                foreach ($staff as $row) { ?>
+                foreach ($members as $row) { ?>
 
                 <tr role="row" class="odd">
                     <td class="text-center"><?php echo $i; ?></td>
@@ -49,11 +49,11 @@
                             Action
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item view_staff" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
+                            <a class="dropdown-item view_members" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="./main.php?dir=staff&page=edit_staff&amp;id=<?php echo $row['id']; ?>">Edit</a>
+                            <a class="dropdown-item" href="./main.php?dir=members&page=edit_member&amp;id=<?php echo $row['id']; ?>">Edit</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item delete_staff" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
+                            <a class="dropdown-item delete_members" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
                         </div>
                     </td>
                 </tr>
@@ -69,22 +69,23 @@
 <?php include('./pages/modals/confirm.php'); ?>
 <?php include('./pages/modals/uni_modal.php'); ?>
 
+
 <script>
 $(document).ready(function(){
 
     $('.page-title').addClass('d-none');
 
-    $('#listStaff').DataTable();     // initialize the datatable
+    $('#listMembers').DataTable();     // initialize the datatable
 
     // View Org
-    $('.view_staff').click(function(){
+    $('.view_members').click(function(){
         // pull in the html view page with uni_modal
-		uni_modal("<i class='fa fa-id-card'></i> User Details", "main/users/inc/view_org.php?id=" + $(this).attr('data-id'));
+		uni_modal("<i class='fa fa-id-card'></i> User Details", "main/members/inc/view_member.php?id=" + $(this).attr('data-id'));
 	});
 
     // Delete Org
-    $('#listStaff').delegate('.delete_staff', 'click', function(e) {
-        doConfirm("Are you sure to delete this staff?", "deleteStaff", [ $(this).attr('data-id') ])
+    $('#listMembers').delegate('.delete_member', 'click', function(e) {
+        doConfirm("Are you sure to delete this member?", "deleteMembers", [ $(this).attr('data-id') ])
     })
 });
 

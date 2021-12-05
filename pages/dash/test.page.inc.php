@@ -1,5 +1,5 @@
 
-<?php permit('ADMIN', true, false); ?>
+<?php permit('DASHBOARD_COMPANY_C', true, false); ?>
 
 <?php if (permit('ADMIN', false, false)): ?>
 <div class="row mb-4">

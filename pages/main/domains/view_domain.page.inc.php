@@ -118,7 +118,9 @@ if (isset($_GET['id'])) {
                             <td class="text-left"><b><?php echo $row['description']; ?></b></td>
                             <td class="text-center">
                                 <a class="btn btn-sm edit_subdom" href="#"
-                                    data-toggle="modal" data-target="#editSubDomModal" 
+                                    data-toggle="modal" 
+                                    data-target="#editSubdomainModal" 
+                                    data-xsrc="view_domain"
                                     data-subdomid="<?php echo $row['id']; ?>" 
                                     data-domainid="<?php echo (isset($_GET['id'])) ? $id : ''; ?>">
                                     <i class="fa fa-pen" style="color:royalblue"></i>
@@ -141,7 +143,7 @@ if (isset($_GET['id'])) {
 
 <!-- Modals -->
 <?php include('./pages/modals/subdomain_selector.php'); ?>
-<?php include('./pages/main/orgs/modals/edit_subdom_modal.php'); ?>
+<?php include('./pages/main/subdoms/modals/edit_subdom_modal.php'); ?>
 
 <script> 
 $(document).ready(function() {

@@ -589,6 +589,9 @@ function deleteUser($id) {
         // TODO: delete any ties to page_access_level
         
         if ($opr->sqlDelete('DELETE FROM users WHERE id=?', 'i', $id)) {
+
+            // TODO: delete any associated files
+
             return 0;
         }
         else {
@@ -670,12 +673,21 @@ function createNewDomain($domain_name, $description) {
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
+
+        // Ensure the domain name has not been used elsewhere
+        $sql = "SELECT * FROM domains WHERE name=?";
+        $check = $opr->sqlSelect($sql, 's', $domain_name)->num_rows;
+        if($check > 0){
+            // echo "Domain name already used";
+            return -3;   //  Domain name already used.
+        }
+
         // Create the domain
         $id = $opr->sqlInsert(  'INSERT INTO domains VALUES (NULL, ?, ?)', 'ss', $domain_name, $description);
 
         // If successful, create the default 'main' subdomain
         if ($id > 0) {
-            $opr->sqlInsert( "INSERT INTO `subdomains` VALUES (NULL, 'main', ?, 'default', 'Default sub-domain')", 'i', $id);
+            $opr->sqlInsert( "INSERT INTO `subdomains` VALUES (NULL, 'main', '', ?, 'default', 'Default sub-domain')", 'i', $id);
         }
         else {
             return -2;  // Unable to create default subdomain
@@ -807,9 +819,41 @@ function addSubDomToDomain($domainId, $subDomName, $subDomDescr) {
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
 
-        $id = $opr->sqlInsert(  "INSERT INTO `subdomains` VALUES (NULL, ?, ?, ?, ?)", 
+        $id = $opr->sqlInsert(  "INSERT INTO `subdomains` VALUES (NULL, ?, '', ?, ?, ?)", 
                                 'siss', $subDomName, $domainId, 'extension', $subDomDescr);
         return $id;
+        $opr->close();
+    }
+    else {
+        return -2;      // Failed to connect to database
+    }     
+}
+
+function createStoreUnit($storeunit_name, $domainId, $subDomName, $subDomType, $subDomDescr) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the subdomain name has not been used in the same domain
+        $sql = "SELECT * FROM subdomains WHERE name=? AND parent_domain_id=?";
+        $check = $opr->sqlSelect($sql, 'si', $subDomName, $domainId)->num_rows;
+        if($check > 0){
+            // echo "Subdomain name already exists.";
+            return -3;   //  Subdomain name already exists.
+        }    
+
+        // Ensure the store unit name has not been used in the same domain
+        $sql = "SELECT * FROM subdomains WHERE storeunit=? AND parent_domain_id=?";
+        $check = $opr->sqlSelect($sql, 'si', $storeunit_name, $domainId)->num_rows;
+        if($check > 0){
+            // echo "StoreUnit already exists.";
+            return -4;   //  StoreUnit name already exists.
+        }    
+
+        $id = $opr->sqlInsert(  "INSERT INTO `subdomains` VALUES (NULL, ?, ?, ?, ?, ?)", 
+                                'ssiss', $subDomName, $storeunit_name, $domainId, $subDomType, $subDomDescr);
+        return $id;
+
         $opr->close();
     }
     else {
@@ -853,13 +897,13 @@ function updateSubdomain($domain_id, $subdom_id, $subdom_name, $subdom_descr) {
 }
 
 
-function deleteSubdomain($domain_id, $subdom_id) {
+function deleteSubdomain($subdom_id) {
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
 
-        $sql = "DELETE FROM subdomains WHERE parent_domain_id=? AND id=? AND type != 'default'";
-        if ($opr->sqlDelete2($sql, 'ii', $domain_id, $subdom_id)) {
+        $sql = "DELETE FROM subdomains WHERE id=? AND type != 'default'";
+        if ($opr->sqlDelete2($sql, 'i', $subdom_id)) {
             return 0;
         }
         else {
@@ -1278,6 +1322,1057 @@ function getVendorProductById($vprodId) {
     else {
         return -1;      // Failed to connect to database
     }
+}
+
+function isBrandNameValid($brandName) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM brands WHERE name=?', 's', $brandName);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+function isCategoryNameValid($categoryName) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM categories WHERE name=?', 's', $categoryName);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+function isProductShortDescrValid($descr) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM products WHERE short_descr=?', 's', $descr);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+function isPackageUnitValid($pkgunit) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE parent="products" AND type="packaging_unit"
+                                AND label=?', 's', $pkgunit);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+function isPackageLotValid($pkglot) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE parent="products" AND type="packaging_lot"
+                                AND label=?', 's', $pkglot);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+
+
+/*
+ * Manage Customers
+ *
+ */
+
+function saveCustomer($post) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('id', 'manageCustomer')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'customer_name') $k = 'name';
+            if ($k === 'customer_address') $k = 'address';
+            if ($k === 'customer_contact_person') $k = 'contact_person';
+            if ($k === 'customer_contact_email') $k = 'contact_email';
+            if ($k === 'customer_contact_phone') $k = 'contact_phone';
+            if ($k === 'domain') $k = 'domain_id';
+            if ($k === 'customer_description') $k = 'description';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // Set the type
+    if(empty($data)) {
+        $data .= " type='customer'";
+    }
+    else {
+        $data .= ", type='customer'";
+    }
+
+    // echo $data;
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the customer name has not already been used
+        $sql = "SELECT * FROM organizations WHERE name=?";
+        if (empty($id)) {
+            $check = $opr->sqlSelect($sql, 's', $customer_name)->num_rows;
+        }
+        else {
+            $sql .= " AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $customer_name, $id)->num_rows;
+        }
+    
+        if($check > 0){
+            echo "Customer name already used.";
+            return -2;   //  customer name has already been used
+        }
+
+        // echo "INSERT INTO organizations SET ".$data;
+        // echo "UPDATE organizations SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO organizations SET $data");
+            } else {
+                $id = $opr->sqlUpdate("UPDATE organizations SET $data WHERE id = ?", 'i', $id);
+            }
+            if($id){
+                return $id;         // saved customer successfully
+            } 
+            else {
+                return -3;          // unable to insert customer in db
+            }   
+        }
+        catch (Exception $e) {
+            return -4;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+function deleteCustomer($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties to customer
+        
+        if ($opr->sqlDelete('DELETE FROM organizations WHERE id=?', 'i', $id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete user
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
+
+/*
+ * Manage Organizations
+ *
+ */
+
+function getAllOrganizations() {
+    $organizations = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, domain_id, (SELECT name FROM `domains` WHERE domain_id = `domains`.id) 
+                as domain, type, address, contact_person, contact_email, contact_phone, description 
+                FROM `organizations`";
+
+        $res = $opr->sqlSelect($sql);
+
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $organizations[] = $row;
+            }
+            $res->free_result();
+        }
+        $opr->close();
+
+        return $organizations;
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function getOrganizationByIdV2($organizationId) {
+    $organization = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM organizations WHERE id=?', 'i', $organizationId);
+        if ($res && $res->num_rows === 1) {
+            $organization = $res->fetch_assoc();
+            return $organization;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function getDomainByOrganizationId($organizationId) {
+    $domains = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT `domains`.id, `domains`.name, `organizations`.domain_id, `domains`.description 
+                FROM `organizations` INNER JOIN `domains` 
+                ON `organizations`.domain_id = `domains`.id
+                WHERE `organizations`.id=?";
+
+        $res = $opr->sqlSelect($sql, 'i', $organizationId);
+
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $domains[] = $row;
+            }
+            $res->free_result();
+        }
+        $opr->close();
+
+        return $domains;
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function saveOrganization($post) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('id', 'manageOrganization')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'organization_name') $k = 'name';
+            if ($k === 'organization_address') $k = 'address';
+            if ($k === 'organization_type') $k = 'type';
+            if ($k === 'organization_contact_person') $k = 'contact_person';
+            if ($k === 'organization_contact_email') $k = 'contact_email';
+            if ($k === 'organization_contact_phone') $k = 'contact_phone';
+            if ($k === 'domain') $k = 'domain_id';
+            if ($k === 'organization_description') $k = 'description';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // echo $data;
+
+    // Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the entity name has not already been used
+        $sql = "SELECT * FROM organizations WHERE name=?";
+        if (empty($id)) {
+            $check = $opr->sqlSelect($sql, 's', $organization_name)->num_rows;
+        }
+        else {
+            $sql .= " AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $organization_name, $id)->num_rows;
+        }
+    
+        if($check > 0){
+            // echo "Organization name already used.";
+            return -2;   //  organization name has already been used
+        }
+
+        // echo "INSERT INTO organizations SET ".$data;
+        // echo "UPDATE organizations SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO organizations SET $data");
+            } else {
+                $id = $opr->sqlUpdate("UPDATE organizations SET $data WHERE id = ?", 'i', $id);
+            }
+            if($id){
+                return $id;         // saved organization successfully
+            } 
+            else {
+                return -3;          // unable to insert organization in db
+            }   
+        }
+        catch (Exception $e) {
+            return -4;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+function deleteOrganization($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties to customer
+        
+        if ($opr->sqlDelete('DELETE FROM organizations WHERE id=?', 'i', $id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete user
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
+
+/*
+ * Manage Members
+ *
+ */
+
+function saveMember($post) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('id', 'manageMember', 'member_user')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'member_user_id') $k = 'user_id';
+            if ($k === 'member_org_id') $k = 'org_id';
+            if ($k === 'member_department') $k = 'department';
+            if ($k === 'member_role') $k = 'functional_role';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // echo $data;
+
+    // Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the same user not created multiple times
+        $sql = "SELECT * FROM members WHERE user_id=?";
+        if (empty($id)) {
+            $check = $opr->sqlSelect($sql, 's', $member_user_id)->num_rows;
+        }
+        else {
+            $sql .= " AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $member_user_id, $id)->num_rows;
+        }
+
+        if($check > 0){
+            echo "Organization name already used.";
+            return -2;   //  organization name has already been used
+        }
+
+        // Get the target oOrganization's domain
+        $domain_id = 0;
+        $domain_query = "SELECT domain_id FROM organizations WHERE id=?";
+        $res = $opr->sqlSelect($domain_query, 'i', $member_org_id);
+        if ($res && $res->num_rows === 1) {
+            $domain_id = $res->fetch_assoc()['domain_id'];
+            $res->free_result();
+        }
+        else {
+            return -4;      // Organization has no associated domain
+        }    
+
+        // Add the organization domain to the fields
+        if(empty($data)){
+            $data .= " domain_id='$domain_id'";
+        }else{
+            $data .= ", domain_id='$domain_id'";
+        }
+
+        // echo "INSERT INTO members SET ".$data;
+        // echo "UPDATE members SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO members SET $data");
+            } else {
+                $id = $opr->sqlUpdate("UPDATE members SET $data WHERE id = ?", 'i', $id);
+            }
+            if($id){
+                // Migrate the user into the organization's domain.
+                $opr->sqlUpdate("UPDATE users SET domain=? WHERE id=?", 'ii', $domain_id, $member_user_id);
+
+                // Get the default subdomain
+                $def_subdom_id = 0;
+                $subdom_query = "SELECT * FROM subdomains WHERE parent_domain_id=? AND type='default'";
+                $res = $opr->sqlSelect($subdom_query, 'i', $domain_id);
+                if ($res && $res->num_rows > 0) {
+                    $def_subdom_id = $res->fetch_assoc()['id'];  // just get the first one
+                    $res->free_result();
+                }
+                else {
+                    return -5;      // Domain has no default subdomain
+                }  
+
+                // echo "def_subdom_id: ". $def_subdom_id;
+
+                // Delete all previous subdomains associated with the user
+                $opr->sqlDelete('DELETE FROM subdomains_users WHERE user_id=?', 'i', $member_user_id);
+
+                // Ensure to associate the new member with the default subdomain of the organization 
+                $opr->sqlInsert("INSERT INTO subdomains_users VALUES (NULL, ?, ?, '')", "ii", 
+                                                            $member_user_id, $def_subdom_id);
+                        
+                return $id;         // saved organization successfully
+            } 
+            else {
+                return -3;          // unable to insert organization in db
+            }   
+        }
+        catch (Exception $e) {
+            return -6;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+function deleteMember($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties to customer
+        
+        if ($opr->sqlDelete('DELETE FROM members WHERE id=?', 'i', $id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete user
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
+
+/*
+ * Manage Vendors
+ *
+ */
+
+function saveVendor($post) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('id', 'manageVendor')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'vendor_name') $k = 'name';
+            if ($k === 'vendor_address') $k = 'address';
+            if ($k === 'vendor_contact_person') $k = 'contact_person';
+            if ($k === 'vendor_contact_email') $k = 'contact_email';
+            if ($k === 'vendor_contact_phone') $k = 'contact_phone';
+            if ($k === 'domain') $k = 'domain_id';
+            if ($k === 'vendor_description') $k = 'description';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // Set the type
+    if(empty($data)) {
+        $data .= " type='vendor'";
+    }
+    else {
+        $data .= ", type='vendor'";
+    }
+
+    // echo $data;
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the vendor name has not already been used
+        $sql = "SELECT * FROM organizations WHERE name=?";
+        if (empty($id)) {
+            $check = $opr->sqlSelect($sql, 's', $vendor_name)->num_rows;
+        }
+        else {
+            $sql .= " AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $vendor_name, $id)->num_rows;
+        }
+    
+        if($check > 0){
+            // echo "Vendor name already used.";
+            return -2;   //  customer name has already been used
+        }
+
+        // echo "INSERT INTO organizations SET ".$data;
+        // echo "UPDATE organizations SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO organizations SET $data");
+            } else {
+                $id = $opr->sqlUpdate("UPDATE organizations SET $data WHERE id = ?", 'i', $id);
+            }
+            if($id){
+                return $id;         // saved vendor successfully
+            } 
+            else {
+                return -3;          // unable to insert vendor in db
+            }   
+        }
+        catch (Exception $e) {
+            return -4;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+function deleteVendor($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties to customer
+        
+        if ($opr->sqlDelete('DELETE FROM organizations WHERE id=?', 'i', $id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete user
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
+
+/*
+ * Manage Domain Operators
+ *
+ */
+
+function saveDoperator($post) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('id', 'manageDoperator', 'edit_userid', 'edit_subdomid', 'type')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'domainid') $k = 'domain_id';
+            if ($k === 'subdomid') $k = 'sub_dom_id';
+            if ($k === 'doperator_function') $k = 'dom_function_key';
+            if ($k === 'doperator_description') $k = 'description';
+            if ($k === 'doperator_role') $k = 'assoc_role';
+            if ($k === 'userid') $k = 'user_id';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // echo $data;
+
+    // Handle disabled select functionality which does not send userid
+    if(!empty($edit_userid) && !isset($userid)){
+        $user_id = $edit_userid;
+    }
+    else {
+        $user_id = $userid;
+    }
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the parameter combination has not already been used
+        $sql = "SELECT * FROM domain_operators 
+                WHERE domain_id=? AND sub_dom_id=? AND dom_function_key=? AND assoc_role=? AND user_id=?";
+        if (empty($id)) {
+            $check = $opr->sqlSelect($sql, 'iisii', 
+                $domainid,
+                $subdomid,
+                $doperator_function,
+                $doperator_role,
+                $user_id
+            )->num_rows;
+        }
+        else {
+            $sql .= " AND id != ?";
+            $check = $opr->sqlSelect($sql, 'iisiii', 
+                $domainid,
+                $subdomid,
+                $doperator_function,
+                $doperator_role,
+                $user_id,
+                $id
+            )->num_rows;
+        }
+    
+        if($check > 0){
+            // echo "Domain Operator paramaters already exist.";
+            return -2;   //  Domain Operator paramaters already exist.
+        }
+
+        // echo "INSERT INTO domain_operators SET ".$data;
+        // echo "UPDATE domain_operators SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO domain_operators SET $data");
+            } else {
+                $id = $opr->sqlUpdate("UPDATE domain_operators SET $data WHERE id = ?", 'i', $id);
+            }
+            if($id){
+                return $id;         // saved domain operator successfully
+            } 
+            else {
+                return -3;          // unable to insert domain operator in db
+            }   
+        }
+        catch (Exception $e) {
+            return -4;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+function deleteDoperator($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties to customer
+        
+        if ($opr->sqlDelete('DELETE FROM domain_operators WHERE id=?', 'i', $id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete user
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
+
+/*
+ * Manage Brands
+ *
+ */
+
+function getBrandById($brandId) {
+    $brand = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM brands WHERE id=?', 'i', $brandId);
+        if ($res && $res->num_rows === 1) {
+            $brand = $res->fetch_assoc();
+            return $brand;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function createNewBrand($brand_name, $catalog_symbol) {
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the brand has not been used
+        $sql = "SELECT * FROM brands WHERE name=?";
+        $check = $opr->sqlSelect($sql, 's', $brand_name)->num_rows;
+        if($check > 0){
+            // echo "Brand name already exists.";
+            return -2;   //  Brand name already exists.
+        }
+
+        // Ensure the catalog_symbol has not been used
+        $sql = "SELECT * FROM brands WHERE catalog_symbol=?";
+        $check = $opr->sqlSelect($sql, 's', $catalog_symbol)->num_rows;
+        if($check > 0){
+            // echo "Catalog symbol already exists.";
+            return -3;   //  Catalog symbol already exists.
+        }
+
+        $id = $opr->sqlInsert(  'INSERT INTO brands VALUES (NULL, ?, CURRENT_TIMESTAMP, ?, ?)', 
+                                'sss', $brand_name, $_SESSION["userid"], $catalog_symbol);
+        return $id;
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }     
+}
+
+function updateBrand($brand_id, $brand_name, $catalog_symbol) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Ensure the catalog_symbol has not been used
+        $sql = "SELECT * FROM brands WHERE catalog_symbol=?";
+        $check = $opr->sqlSelect($sql, 's', $catalog_symbol)->num_rows;
+        if($check > 0){
+            return -3;   //  Catalog symbol already exists.
+        }
+
+        if ($opr->sqlUpdate('UPDATE brands SET name=?,catalog_symbol=? 
+                            WHERE id=?', 'ssi', $brand_name, $catalog_symbol, $brand_id)) {
+            return 0;
+        }
+        else {
+            return -4;      // unable to update brand
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }       
+}
+
+function deleteBrand($brand_id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        if ($opr->sqlDelete('DELETE FROM brands WHERE id=?', 'i', $brand_id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to update brand
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
+}
+
+
+/*
+ * Manage Categories
+ *
+ */
+
+function getCategoryById($categoryId) {
+    $category = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM categories WHERE id=?', 'i', $categoryId);
+        if ($res && $res->num_rows === 1) {
+            $category = $res->fetch_assoc();
+            return $category;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function saveCategory($post, $files) {
+
+    // Enable trapping exception in try...catch..
+    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array('category_id', 'createNewCategory', 'category_parentid')) && !is_numeric($k)) {
+
+            // Adapt fields to the database
+            if ($k === 'category_name') $k = 'name';
+            if ($k === 'category_abbrv') $k = 'abbrv';
+            if ($k === 'category_description') $k = 'description';
+            if ($k === 'category_catalog_symbol') $k = 'catalog_symbol';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // Test 'category_parentid' and include if not null
+    if(!empty($category_parentid) && $category_parentid !== 'NULL') {
+        $data .= ", parent_id='" . $category_parentid .".'";
+    }
+
+    // echo $data;
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        
+        if(empty($category_id)) {
+
+            // Handle the uploaded image file
+            if(isset($files['category_img_file']) && $files['category_img_file']['tmp_name'] != '') {
+                // foreach($files as $k => $v) { $$k = $v; echo "\n$$k:\n"; print_r($v); }
+                $fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['category_img_file']['name'];
+                move_uploaded_file($_FILES['category_img_file']['tmp_name'], CATEGORIES_PIX_PATH.$fname);
+                $data .= ", cat_image = '$fname' ";
+            } 
+
+            // Ensure the category name has not been used
+            $sql = "SELECT * FROM categories WHERE name=?";
+            $check = $opr->sqlSelect($sql, 's', $category_name)->num_rows;
+            if($check > 0){
+                // echo "Category name already exists.";
+                return -2;   //  Category name already exists.
+            }
+
+            // Ensure the catalog_symbol has not been used
+            $sql = "SELECT * FROM categories WHERE abbrv=?";
+            $check = $opr->sqlSelect($sql, 's', $category_abbrv)->num_rows;
+            if($check > 0){
+                // echo "Abbreviation already exists.";
+                return -3;   //  Abbreviation already exists.
+            }
+
+            // Ensure the catalog_symbol has not been used
+            $sql = "SELECT * FROM categories WHERE catalog_symbol=?";
+            $check = $opr->sqlSelect($sql, 's', $category_catalog_symbol)->num_rows;
+            if($check > 0){
+                // echo "Catalog symbol already exists.";
+                return -4;   //  Catalog symbol already exists.
+            }
+
+            // Add current date and userid if a new category
+            $data .= ", created_on=CURRENT_TIMESTAMP";
+            $data .= ", created_by=" . $_SESSION['userid'];
+        }
+        else {
+
+            // Handle the uploaded image file
+            if(isset($files['edit_category_img_file']) && $files['edit_category_img_file']['tmp_name'] != '') {
+                // foreach($files as $k => $v) { $$k = $v; echo "\n$$k:\n"; print_r($v); }
+                $fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['edit_category_img_file']['name'];
+                move_uploaded_file($_FILES['edit_category_img_file']['tmp_name'], CATEGORIES_PIX_PATH.$fname);
+                $data .= ", cat_image = '$fname' ";
+            } 
+
+            // Ensure the category name has not been used elsewhere except for this instance
+            $sql = "SELECT * FROM categories WHERE name=? AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $category_name, $category_id)->num_rows;
+            if($check > 0){
+                // echo "Category name already exists.";
+                return -2;   //  Category name already exists.
+            }
+
+            // Ensure the catalog_symbol has not been used elsewhere except for this instance
+            $sql = "SELECT * FROM categories WHERE abbrv=? AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $category_abbrv, $category_id)->num_rows;
+            if($check > 0){
+                // echo "Abbreviation already exists.";
+                return -3;   //  Abbreviation already exists.
+            }
+
+            // Ensure the catalog_symbol has not been used elsewhere except for this instance
+            $sql = "SELECT * FROM categories WHERE catalog_symbol=? AND id != ?";
+            $check = $opr->sqlSelect($sql, 'si', $category_catalog_symbol, $category_id)->num_rows;
+            if($check > 0){
+                // echo "Catalog symbol already exists.";
+                return -4;   //  Catalog symbol already exists.
+            }
+        }
+
+        // echo $data;
+
+        // echo "INSERT INTO categories SET ".$data;
+        // echo "UPDATE categories SET ".$data . " WHERE id = " . $category_id;
+
+        try {
+            if(empty($category_id)){
+                $id = $opr->sqlInsert("INSERT INTO categories SET $data");
+            } else {
+                $id = $opr->sqlUpdate("UPDATE categories SET $data WHERE id = ?", 'i', $category_id);
+            }
+
+            if($id){
+                return $id;         // saved domain operator successfully
+            } 
+            else {
+                return -5;          // unable to insert domain operator in db
+            }   
+        }
+        catch (Exception $e) {
+            return -6;              // exception
+        }
+
+        $opr->close();
+    }
+    else {
+        return -7;                  // Failed to connect to database
+    } 
+}
+
+
+function deleteCategory($category_id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        if ($opr->sqlDelete2('DELETE FROM categories WHERE id=?', 'i', $category_id)) {
+
+            // TODO: also delete any associated image file for this copy
+
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete category
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
 }
 
 

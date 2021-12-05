@@ -99,5 +99,50 @@ if (isset($_POST["importVProductCsv"])) {
 }
 
 
+// Is the brand name valid
+if (isset($_POST["isBrandNameValid"])) {
+    if (isset($_POST["brandname"])) {
+        $result = isBrandNameValid($_POST["brandname"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the category name valid
+if (isset($_POST["isCategoryNameValid"])) {
+    if (isset($_POST["categoryname"])) {
+        $result = isCategoryNameValid($_POST["categoryname"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the product short descr valid
+if (isset($_POST["isProductShortDescrValid"])) {
+    if (isset($_POST["productshortdescr"])) {
+        $result = isProductShortDescrValid($_POST["productshortdescr"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the category name valid
+if (isset($_POST["isPkgUnitValid"])) {
+    if (isset($_POST["pkgunit"])) {
+        $result = isPackageUnitValid($_POST["pkgunit"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the category name valid
+if (isset($_POST["isPkgLotValid"])) {
+    if (isset($_POST["pkglot"])) {
+        $result = isPackageLotValid($_POST["pkglot"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
 
 ?>

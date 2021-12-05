@@ -6,7 +6,7 @@
     <div class="card-header bg-white">
         <div class="card-header-panel d-flex align-items-center justify-content-between">
             <h3 class="my-0">Domain Operators</h3>
-            <a href="./main.php?dir=users&page=add_user" class="btn btn-block btn-sm btn-default btn-flat border-info">
+            <a href="./main.php?dir=doperators&page=add_doperator" class="btn btn-block btn-sm btn-default btn-flat border-info">
                 <i class="fa fa-plus"></i> Add Domain Operators
             </a>
         </div>
@@ -20,7 +20,7 @@
             echo "No Record Found"; exit;
         } ?>
         
-        <table class="table tabe-hover table-bordered table-users" id="listDomOperators">
+        <table class="table table-bordered table-users" id="listDoperators">
 
             <thead>
                 <tr>
@@ -28,7 +28,7 @@
                     <th class="text-left" style="width: 15%;">Username</th>
                     <th class="text-left" style="width: 15%;">Domain</th>
                     <th class="text-left" style="width: 10%;">Sub_Dom</th>
-                    <th class="text-left" style="width: 20%;">Function</th>
+                    <th class="text-left" style="width: 20%;">Function Key</th>
                     <th class="text-left" style="width: 10%;">Role</th>
                     <th class="text-center" style="width: 10%;">Action</th>
                 </tr>
@@ -51,11 +51,11 @@
                             Action
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item view_dom_operator" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
+                            <a class="dropdown-item view_doperator" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="./main.php?dir=orgs&page=edit_dom_operator&amp;id=<?php echo $row['id']; ?>">Edit</a>
+                            <a class="dropdown-item" href="./main.php?dir=doperators&page=edit_doperator&amp;id=<?php echo $row['id']; ?>">Edit</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item delete_dom_operator" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
+                            <a class="dropdown-item delete_doperator" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
                         </div>
                     </td>
                 </tr>
@@ -76,17 +76,17 @@ $(document).ready(function(){
 
     $('.page-title').addClass('d-none');
 
-    $('#listDomOperators').DataTable();     // initialize the datatable
+    $('#listDoperators').DataTable();     // initialize the datatable
 
     // View User
-    $('.view_dom_operator').click(function(){
+    $('.view_doperator').click(function(){
         // pull in the html view page with uni_modal
-		uni_modal("<i class='fa fa-id-card'></i> Operator Details", "main/orgs/inc/view_domain_operator.php?id=" + $(this).attr('data-id'));
+		uni_modal("<i class='fa fa-id-card'></i> Operator Details", "main/doperators/inc/view_doperator.php?id=" + $(this).attr('data-id'));
 	});
 
     // Delete User
-    $('#listDomOperators').delegate('.delete_dom_operator', 'click', function(e) {
-        doConfirm("Are you sure to delete this dom operator?", "deleteDomOperator", [ $(this).attr('data-id') ])
+    $('#listDoperators').delegate('.delete_doperator', 'click', function(e) {
+        doConfirm("Are you sure to delete this domain operator?", "deleteDoperator", [ $(this).attr('data-id') ])
     })
 });
 

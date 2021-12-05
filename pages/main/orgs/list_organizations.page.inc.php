@@ -6,9 +6,9 @@
     <div class="card-header bg-white">
         <div class="card-header-panel d-flex align-items-center justify-content-between">
             <h3 class="my-0">Organizations</h3>
-            <!-- <a href="./main.php?dir=orgs&page=add_org" class="btn btn-block btn-sm btn-default btn-flat border-info">
+            <a href="./main.php?dir=orgs&page=add_organization" class="btn btn-block btn-sm btn-default btn-flat border-info">
                 <i class="fa fa-plus"></i> Add Organization
-            </a> -->
+            </a>
         </div>
     </div>
     <div class="card-body">
@@ -51,7 +51,7 @@
                         <div class="dropdown-menu">
                             <a class="dropdown-item view_org" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="./main.php?dir=orgs&page=edit_org&amp;id=<?php echo $row['id']; ?>">Edit</a>
+                            <a class="dropdown-item" href="./main.php?dir=orgs&page=edit_organization&amp;id=<?php echo $row['id']; ?>">Edit</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item delete_org" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
                         </div>
@@ -77,9 +77,13 @@ $(document).ready(function(){
     $('#listOrgs').DataTable();     // initialize the datatable
 
     // View Org
-    $('.view_org').click(function(){
+    $('#listOrgs .view_org').click(function() {
+        
+        // TODO: Find out why view after index 10 is a problem!!
+
         // pull in the html view page with uni_modal
-		uni_modal("<i class='fa fa-id-card'></i> User Details", "main/users/inc/view_org.php?id=" + $(this).attr('data-id'));
+        //alert($(this).attr('data-id'));
+        uni_modal("<i class='fa fa-id-card'></i> Organization Details", "main/orgs/inc/view_organization.php?id=" + $(this).attr('data-id'));
 	});
 
     // Delete Org

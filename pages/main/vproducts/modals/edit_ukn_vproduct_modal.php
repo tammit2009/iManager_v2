@@ -13,7 +13,7 @@
             <div class="modal-body">
 
                 <!-- Nav tabs -->
-                <ul class="nav nav-tabs mb-3 mx-3" id="myTab" role="tablist">
+                <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="main-tab" data-toggle="tab" href="#main" role="tab" aria-controls="main" aria-selected="true">Product</a>
                     </li>
@@ -35,7 +35,7 @@
                 </ul>
 
                 <!-- Tab panes -->
-                <div class="tab-content mx-3">
+                <div class="tab-content">
                     <div class="tab-pane active" id="main" role="tabpanel" aria-labelledby="main-tab">
                         <form id="edit_vproduct_form">
                 
@@ -58,7 +58,7 @@
                                                     <td class="text-left" style="width:30%">Brand</td>
                                                     <td class="text-left" style="width:45%"><span id="vproduct_brand"></span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <span class="badge badge-secondary p-2" id="vproduct_brand_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
                                                         </span>
                                                     </td>
@@ -67,7 +67,7 @@
                                                     <td class="text-left">Category</td>
                                                     <td class="text-left"><span id="vproduct_category"></span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <span class="badge badge-secondary p-2" id="vproduct_category_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
                                                         </span>
                                                     </td>
@@ -76,7 +76,7 @@
                                                     <td class="text-left">Product Name</td>
                                                     <td class="text-left"><span id="vproduct_name">Undefined</span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <span class="badge badge-secondary p-2" id="vproduct_productname_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
                                                         </span>
                                                     </td>
@@ -85,7 +85,7 @@
                                                     <td class="text-left">Product Short Description</td>
                                                     <td class="text-left"><span id="vproduct_description"></span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <span class="badge badge-secondary p-2" id="vproduct_description_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
                                                         </span>
                                                     </td>
@@ -94,7 +94,7 @@
                                                     <td class="text-left">Product Package Unit</td>
                                                     <td class="text-left"><span id="vproduct_pkgunit"></span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <span class="badge badge-secondary p-2" id="vproduct_pkgunit_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
                                                         </span>
                                                     </td>
@@ -103,7 +103,7 @@
                                                     <td class="text-left">Product Package Lot</td>
                                                     <td class="text-left"><span id="vproduct_pkglot"></span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <span class="badge badge-secondary p-2" id="vproduct_pkglot_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
                                                         </span>
                                                     </td>
@@ -112,18 +112,18 @@
                                                     <td class="text-left">Provisional SKU</td>
                                                     <td class="text-left"><span id="vproduct_psku"></span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <!-- <span class="badge badge-secondary p-2" id="vproduct_psku_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
-                                                        </span>
+                                                        </span> -->
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="text-left">Recommended SKU</td>
                                                     <td class="text-left"><span id="vproduct_fsku">-----</span></td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-secondary" style="font-size:14px;">
+                                                        <!-- <span class="badge badge-secondary p-2" id="vproduct_fsku_valid" style="font-size:14px;">
                                                             <i class="fa fa-times">&nbsp;</i>Invalid
-                                                        </span>
+                                                        </span> -->
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -172,19 +172,19 @@
                 
                         <div class="my-3">
                             <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-12 mb-3">
 
                                     <div class="form-group">
                                         <label for="">Product Name</label>
                                         <input type="text" name="vproduct_name_input" id="vproduct_name_input" 
-                                            class="form-control form-control-sm" style="width: 85%">
+                                            class="form-control form-control-sm" style="width: 100%">
                                     </div>         
 
                                     <div class="form-group">
                                         <label for="">Description</label>
                                         <!-- <input type="text" name="vproduct_description_input" id="vproduct_description_input" class="form-control form-control-sm"> -->
                                         <textarea name="vproduct_description_input" id="vproduct_description_input" 
-                                            class="form-control form-control-sm" rows="3" style="width: 85%"></textarea>
+                                            class="form-control form-control-sm" rows="3" style="width: 100%"></textarea>
                                     </div>
 
                                 </div>
@@ -192,7 +192,65 @@
                                 <!-- <div class="col-md-12 d-flex justify-content-end mt-3">
                                     <button type="submit" class="update_vproduct_btn btn btn-info" onclick="return false;">Update Product</button>
                                 </div> -->
-                                
+                                <div class="col-md-12">
+                                <table class="table table-bordered" id="product_selection_list" 
+                                            style="table-layout:fixed;word-wrap:breakword;font-size:13px;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="width: 5%;">#</th>
+                                            <th class="text-left" style="width: 15%;">Name</th>
+                                            <th class="text-left" style="width: 30%;">Descr</th>
+                                            <!-- <th class="text-center" style="width: 10%;">Brand</th> -->
+                                            <!-- <th class="text-center" style="width: 10%;">CatId</th> -->
+                                            <th class="text-center" style="width: 10%;">Feat</th>
+                                            <th class="text-center" style="width: 10%;">Unit</th>
+                                            <th class="text-center" style="width: 10%;">Lot</th>
+                                            <th class="text-center" style="width: 10%;">Per Lot</th>
+                                            <th class="text-center" style="width: 10%;">Action</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                    <?php 
+                                    $products = fetch_all_products();
+                                    if ($products == -1 || empty($products)) {
+                                        echo "No Record Found"; exit;
+                                    } else {
+                                        $i = 1;
+                                        foreach ($products as $row) { ?>
+
+                                        <tr>
+                                            <td class="text-center"><?php echo $i; ?></td>
+                                            <td class="text-left"><?php echo $row['product_name']; ?></td>
+                                            <td class="text-left"><?php echo $row['short_descr']; ?></td>
+                                            <!-- <td class="text-center"></?php echo $row['brand_id']; ?></td> -->
+                                            <!-- <td class="text-center"></?php echo $row['category_id']; ?></td> -->
+                                            <td class="text-center"><?php echo $row['features']; ?></td>
+                                            <td class="text-center"><?php echo $row['unit']; ?></td>
+                                            <td class="text-center"><?php echo $row['lot']; ?></td>
+                                            <td class="text-center"><?php echo $row['per_lot']; ?></td>
+                                            <td class="text-center">
+                                                <button 
+                                                    type="button" 
+                                                    data-dismiss="modal"
+                                                    style="font-size:13px;"
+                                                    class="select_role btn btn-secondary btn-sm btn-flat px-3" 
+                                                    data-id="<?php echo $row['id']; ?>"
+                                                    data-name="<?php echo $row['product_name']; ?>"
+                                                >
+                                                    <i class="fa fa-search"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+
+                                        <?php $i++; } ?>
+
+                                    <?php } ?>
+
+                                    </tbody>
+                                </table>
+                                </div>
                             </div>
                         </div>
 
@@ -200,17 +258,20 @@
 
                     <div class="tab-pane" id="brand" role="tabpanel" aria-labelledby="brand-tab">
 
-                        <div class="col-md-12 px-2 mb-4 pt-3">
+                        <div class="col-md-12 px-2 mb-4">
 
-                            <div class="form-group row mb-4">
-                                <!-- <label for="brand_selection" class="col-md-2">Brand:</label> -->
+                            <b>BRAND: "<span style="font-size: 18px;" id="vproduct_brand_current"></span>"</b>
+
+                            <div class="form-group row mt-3">
                                 <div class="col-md-12">
-                                    <input type="text" name="brand_selection" id="brand_selection" class="form-control" placeholder="Select a brand below">
+                                    <input type="hidden" name="brand_selection_id" id="brand_selection_id">
+                                    <input type="text" name="brand_selection" id="brand_selection" class="form-control">
+                                    <p  class="mb-3" style="color:darkred;font-size:13px;">
+                                        Select a brand from the list below to replace the given input
+                                    </p>
                                 </div>
                             </div>
                             
-                            <!-- <p style="background:#f5f5f5;padding:8px;border-radius:6px;font-weight:bold;">Select Brand</p> -->
-                            <!-- <br> -->
 
                             <table class="table table-bordered" id="brand_selection_list" style="font-size:14px;">
                                 <thead>
@@ -239,11 +300,10 @@
                                         <td class="text-center">
                                             <button 
                                                 type="button" 
-                                                data-dismiss="modal"
                                                 style="font-size:13px;"
-                                                class="select_role btn btn-secondary btn-sm btn-flat px-3" 
-                                                data-id="<?php echo $row['id']; ?>"
-                                                data-name="<?php echo $row['label']; ?>"
+                                                class="select_vproduct_brand btn btn-secondary btn-sm btn-flat px-3" 
+                                                data-id="<?php echo $row['brand_id']; ?>"
+                                                data-name="<?php echo $row['name']; ?>"
                                             >
                                                 <i class="fa fa-search"></i>
                                                 Select
@@ -259,19 +319,22 @@
                             </table>
                         </div>
                     </div>
+
                     <div class="tab-pane" id="category" role="tabpanel" aria-labelledby="category-tab">
 
                         <div class="col-md-12 px-2 mb-4 pt-3">
 
-                            <div class="form-group row mb-4">
-                                <!-- <label for="category_selection" class="col-md-2">Category:</label> -->
+                            <b>CATEGORY: "<span style="font-size: 18px;" id="vproduct_category_current"></span>"</b>
+
+                            <div class="form-group row mb-4 mt-3">
                                 <div class="col-md-12">
-                                    <input type="text" name="category_selection" id="category_selection" class="form-control" placeholder="Select a category below">
+                                    <input type="hidden" name="category_selection_id" id="category_selection_id">
+                                    <input type="text" name="category_selection" id="category_selection" class="form-control">
+                                    <p style="color:darkred;font-size:13px;">
+                                        Select a category from the list below to replace the given input
+                                    </p>
                                 </div>
                             </div>
-                            
-                            <!-- <p style="background:#f5f5f5;padding:8px;border-radius:6px;font-weight:bold;">Select Category</p> -->
-                            <!-- <br> -->
 
                             <table class="table table-bordered" id="category_selection_list" style="font-size:14px;">
                                 <thead>
@@ -299,11 +362,10 @@
                                         <td class="text-center">
                                             <button 
                                                 type="button" 
-                                                data-dismiss="modal"
                                                 style="font-size:13px;"
-                                                class="select_role btn btn-secondary btn-sm btn-flat px-3" 
-                                                data-id="<?php echo $row['id']; ?>"
-                                                data-name="<?php echo $row['label']; ?>"
+                                                class="select_vproduct_category btn btn-secondary btn-sm btn-flat px-3" 
+                                                data-id="<?php echo $row['category_id']; ?>"
+                                                data-name="<?php echo $row['name']; ?>"
                                             >
                                                 <i class="fa fa-search"></i>
                                                 Select
@@ -324,15 +386,17 @@
 
                         <div class="col-md-12 px-2 mb-4 pt-3">
 
-                            <div class="form-group row mb-4">
-                                <!-- <label for="pkgunit_selection" class="col-md-2">Brand:</label> -->
+                            <b>PACKAGE UNIT: "<span style="font-size: 18px;" id="vproduct_pkgunit_current"></span>"</b>
+
+                            <div class="form-group row mb-4 mt-3">
                                 <div class="col-md-12">
-                                    <input type="text" name="pkgunit_selection" id="pkgunit_selection" class="form-control" placeholder="Select a package unit type below">
+                                    <input type="hidden" name="pkgunit_selection_id" id="pkgunit_selection_id">
+                                    <input type="text" name="pkgunit_selection" id="pkgunit_selection" class="form-control">
+                                    <p style="color:darkred;font-size:13px;">
+                                        Select a packaging unit from the list below to replace the given input
+                                    </p>
                                 </div>
                             </div>
-                            
-                            <!-- <p style="background:#f5f5f5;padding:8px;border-radius:6px;font-weight:bold;">Select Package Lot</p> -->
-                            <!-- <br> -->
 
                             <table class="table table-bordered" id="pkgunit_selection_list" style="font-size:14px;">
                                 <thead>
@@ -343,15 +407,16 @@
                                         <th class="text-center" style="width: 15%;">Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
 
                                 <?php 
-                                $pkg_lots = fetch_all_pkg_lot_types();
-                                if ($pkg_lots == -1 || empty($pkg_lots)) {
+                                $pkg_units = fetch_all_pkg_unit_types();
+                                if ($pkg_units == -1 || empty($pkg_units)) {
                                     echo "No Record Found"; exit;
                                 } else {
                                     $i = 1;
-                                    foreach ($pkg_lots as $row) { ?>
+                                    foreach ($pkg_units as $row) { ?>
 
                                     <tr>
                                         <td class="text-center"><?php echo $i; ?></td>
@@ -360,9 +425,8 @@
                                         <td class="text-center">
                                             <button 
                                                 type="button" 
-                                                data-dismiss="modal"
                                                 style="font-size:13px;"
-                                                class="select_role btn btn-secondary btn-sm btn-flat px-3" 
+                                                class="select_vproduct_pkgunit btn btn-secondary btn-sm btn-flat px-3" 
                                                 data-id="<?php echo $row['id']; ?>"
                                                 data-name="<?php echo $row['label']; ?>"
                                             >
@@ -385,15 +449,17 @@
 
                         <div class="col-md-12 px-2 mb-4 pt-3">
 
-                            <div class="form-group row mb-4">
-                                <!-- <label for="pkglot_selection" class="col-md-2">Brand:</label> -->
+                            <b>PACKAGE LOT: "<span style="font-size: 18px;" id="vproduct_pkglot_current"></span>"</b>
+
+                            <div class="form-group row mb-4 mt-3">
                                 <div class="col-md-12">
-                                    <input type="text" name="pkglot_selection" id="pkglot_selection" class="form-control" placeholder="Select a package lot type below">
+                                    <input type="hidden" name="pkglot_selection_id" id="pkglot_selection_id">
+                                    <input type="text" name="pkglot_selection" id="pkglot_selection" class="form-control">
+                                    <p style="color:darkred;font-size:13px;">
+                                        Select a packaging lot from the list below to replace the given input
+                                    </p>
                                 </div>
                             </div>
-                            
-                            <!-- <p style="background:#f5f5f5;padding:8px;border-radius:6px;font-weight:bold;">Select Package Lot</p> -->
-                            <!-- <br> -->
 
                             <table class="table table-bordered" id="pkglot_selection_list" style="font-size:14px;">
                                 <thead>
@@ -404,15 +470,16 @@
                                         <th class="text-center" style="width: 15%;">Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
 
                                 <?php 
-                                $pkg_units = fetch_all_pkg_unit_types();
-                                if ($pkg_units == -1 || empty($pkg_units)) {
+                                $pkg_lots = fetch_all_pkg_lot_types();
+                                if ($pkg_lots == -1 || empty($pkg_lots)) {
                                     echo "No Record Found"; exit;
                                 } else {
                                     $i = 1;
-                                    foreach ($pkg_units as $row) { ?>
+                                    foreach ($pkg_lots as $row) { ?>
 
                                     <tr>
                                         <td class="text-center"><?php echo $i; ?></td>
@@ -421,9 +488,8 @@
                                         <td class="text-center">
                                             <button 
                                                 type="button" 
-                                                data-dismiss="modal"
                                                 style="font-size:13px;"
-                                                class="select_role btn btn-secondary btn-sm btn-flat px-3" 
+                                                class="select_vproduct_pkglot btn btn-secondary btn-sm btn-flat px-3" 
                                                 data-id="<?php echo $row['id']; ?>"
                                                 data-name="<?php echo $row['label']; ?>"
                                             >
@@ -453,10 +519,12 @@
 <script>
 $(document).ready(function() {
 
+    var vprodid;
+
     // triggered when modal is about to be shown 
     $('#editUKNvproductModal').on('show.bs.modal', function(e) {
         // get data-vprodid attribute of the clicked element
-        var vprodid = $(e.relatedTarget).data('vprodid');
+        vprodid = $(e.relatedTarget).data('vprodid');
         // Set the UI element values
         getVendorProductById(vprodid);
     });
@@ -468,9 +536,53 @@ $(document).ready(function() {
     });
 
     $('#brand_selection_list').DataTable();
+    $('#product_selection_list').DataTable({
+        responsive: true,
+        autoWidth: false    
+    });
     $('#category_selection_list').DataTable();
     $('#pkgunit_selection_list').DataTable();
     $('#pkglot_selection_list').DataTable();
+
+    $("#brand_selection_list").on("click", ".select_vproduct_brand", function() {
+        var brandId = $(this).attr('data-id');
+        var brandName = $(this).attr('data-name');
+        // alert('brandId: ' + brandId + ', vProdId: ' + vprodid);
+
+        // replace the brand_selection input and any others
+        $('#brand_selection').val(brandName);
+        $('#brand_selection_id').val(brandId);
+    });
+
+    $("#category_selection_list").on("click", ".select_vproduct_category", function() {
+        var categoryId = $(this).attr('data-id');
+        var categoryName = $(this).attr('data-name');
+        // alert('categoryId: ' + categoryId + ', vProdId: ' + vprodid);
+
+        // replace the category_selection input and any others
+        $('#category_selection').val(categoryName);
+        $('#category_selection_id').val(categoryId);
+    });
+
+    $("#pkgunit_selection_list").on("click", ".select_vproduct_pkgunit", function() {
+        var pkgunitId = $(this).attr('data-id');
+        var pkgunitName = $(this).attr('data-name');
+        // alert('pkgunitId: ' + pkgunitId + ', vProdId: ' + vprodid);
+
+        // replace the pkgunit_selection input and any others
+        $('#pkgunit_selection').val(pkgunitName);
+        $('#pkgunit_selection_id').val(pkgunitId);
+    });
+
+    $("#pkglot_selection_list").on("click", ".select_vproduct_pkglot", function() {
+        var pkglotId = $(this).attr('data-id');
+        var pkglotName = $(this).attr('data-name');
+        // alert('pkglotId: ' + pkglotId + ', vProdId: ' + vprodid);
+
+        // replace the pkglot_selection input and any others
+        $('#pkglot_selection').val(pkglotName);
+        $('#pkglot_selection_id').val(pkglotId);
+    });
 
 });   
 </script>

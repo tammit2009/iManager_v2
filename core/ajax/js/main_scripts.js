@@ -1020,7 +1020,7 @@ function manageUser(form_data) {
 
         // reset indicators
         $('input').removeClass("border-danger")
-    	$('#msg').html('')
+    	$('#email_msg').html('')
 
         start_load();
 
@@ -1235,7 +1235,7 @@ function createNewDomain(form_data) {
                     });
 
                     // Do a redirect to list roles
-                    window.location = `${baseUrlMain}/main.php?dir=orgs&page=list_domains`;
+                    window.location = `${baseUrlMain}/main.php?dir=domains&page=list_domains`;
                 }
             }
         });
@@ -1292,7 +1292,7 @@ function updateDomain(form_data) {
                     });
 
                     // Do a redirect to list roles
-                    window.location = `${baseUrlMain}/main.php?dir=orgs&page=list_domains`;
+                    window.location = `${baseUrlMain}/main.php?dir=domains&page=list_domains`;
                 }
             }
         });
@@ -1333,7 +1333,7 @@ function deleteDomain(domainId) {
                     });
 
                     // Do a redirect to list roles
-                    window.location = `${baseUrlMain}/main.php?dir=orgs&page=list_domains`;
+                    window.location = `${baseUrlMain}/main.php?dir=domains&page=list_domains`;
                 }
             }
         });
@@ -1370,6 +1370,30 @@ function getSubDomainById(domainId, subdomId) {
             $("#edit_subdom_form #subdom_id").val(subdomId);
             $("#edit_subdom_form #subdom_name").val(name);
             $("#edit_subdom_form #subdom_descr").val(description);
+        }
+    });
+}
+
+function getSubDomainByIdV2(domainId, subdomId) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/subdomains.php',
+        method: 'GET',
+        data: { "getSubDomById": 1, "domainid": domainId, "subdomid": subdomId},
+        type: 'text',
+        success: function(response) {
+            response = JSON.parse(response);
+            // console.log(response);
+
+            var domainId = response.parent_domain_id;
+            var subdomId = response.id;
+            var name = response.name;
+            var description = response.description;
+
+            $("#edit_subdomain_form #domain_id").val(domainId);
+            $("#edit_subdomain_form #subdom_id").val(subdomId);
+            $("#edit_subdomain_form #subdom_name").val(name);
+            $("#edit_subdomain_form #subdom_description").val(description);
         }
     });
 }
@@ -1477,20 +1501,20 @@ function updateSubDomain(form_data) {
                     });
 
                     // Do a redirect to list roles
-                    window.location = `${baseUrlMain}/main.php?dir=orgs&page=view_domain&id=${response.domainid}`;
+                    window.location = `${baseUrlMain}/main.php?dir=domains&page=view_domain&id=${response.domainid}`;
                 }
             }
         });
     }  
 } 
 
-function deleteSubDomain(domainId, subdomId) {
+function deleteSubDomain(domainId, subdomId) {      // TODO: fix this, the domainId is not needed
 
     if (confirm("Are you sure you want to delete..?")) {
         $.ajax({
             url: baseUrlMain+'/core/ajax/main/subdomains.php',
             method: "POST",
-            data: { deleteSubDomain: 1, domainid: domainId, subdomid: subdomId },
+            data: { deleteSubDomain: 1, subdomid: subdomId },   
             success: function(response) {
                 // alert(response);
                 response = JSON.parse(response);
@@ -1517,8 +1541,166 @@ function deleteSubDomain(domainId, subdomId) {
                         }
                     });
 
-                    // Do a redirect to list roles
+                    // Do a redirect to view domain
                     window.location = `${baseUrlMain}/main.php?dir=orgs&page=view_domain&id=${response.domainid}`;
+                }
+            }
+        });
+    }
+    else {
+        // Do nothing.
+    }
+}
+
+
+// Standalone create subdomain 
+function createSubdomain(form_data) {
+
+    // validate inputs
+    if ($("#subdom_name").val() === "") {
+        alert("Please enter subdomain name first.");
+    }
+    else {
+        // add the method name
+        form_data.push({ name: 'createSubdomain', value: 1 });
+        // console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/subdomains.php',
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert(response.message);
+
+                // Reset the form
+                $("#create_subdomain_form").trigger("reset");                
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to add a new subdomain', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                    status = "success";
+                    msg = "New subdomain successfully created and added.";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=subdoms&page=list_subdoms`;
+                }
+            }
+        });
+    }
+}
+
+// Standalone update subdomain 
+function updateSubDomainV2(form_data) {
+
+    // validate inputs
+    if ($("#edit_subdomain_form #subdom_name").val() === "") {
+        alert("Subdomain name is Required");
+    }
+    else {
+        // add the method name
+        form_data.push({ name: 'updateSubDomainV2', value: 1 });
+        console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/subdomains.php',
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert("response code: " + response.code);
+
+                // Reset the form
+                $("#edit_subdom_form").trigger("reset");                
+
+                // Update any UI element e.g. '$("#get_category").html(rsp);'
+
+                // Close the modal
+                $('#editSubDomModal').modal('toggle'); 
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to update subdomain', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                    status = "success";
+                    msg = "Subdomain successfully updated";
+                    
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    window.location = `${baseUrlMain}/main.php?dir=subdoms&page=list_subdoms`;
+                }
+            }
+        });
+    } 
+}
+
+// Standalone delete subdomain 
+function deleteSubdomainV2(subdomId) {
+
+    if (confirm("Are you sure you want to delete..?")) {
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/subdomains.php',
+            method: "POST",
+            data: { deleteSubDomain: 1, subdomid: subdomId },
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert(response.message);
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to delete subdomain', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                    status = "success";
+                    msg = "Subdomain successfully deleted";
+                    
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to view domain
+                    window.location = `${baseUrlMain}/main.php?dir=subdoms&page=list_subdoms`;
                 }
             }
         });
@@ -2817,7 +2999,7 @@ function importVProductCsv() {
     });
 }
 
-// Manage the Unknow Vendor Product Modal
+// Manage the Unknown Vendor Product Modal
 
 function getVendorProductById(vprodId) {
     // alert("Vendor Product Id: " + vprodId);
@@ -2841,15 +3023,155 @@ function getVendorProductById(vprodId) {
             var vproduct_lot = response.lot;
             var vproduct_psku = response.provisional_sku;
 
+            //isProductNameValid(vproduct_name);
+            isBrandNameValid(vproduct_brand);
+            isCategoryNameValid(vproduct_category);
+            isProductShortDescrValid(vproduct_description);
+            isPackageUnitValid(vproduct_unit);
+            isPackageLotValid(vproduct_lot);
+
             $("#edit_vproduct_form #vproduct_id").html(vproduct_id);
             // $("#edit_vproduct_form #vproduct_name").val(vproduct_name);
+
             $("#edit_vproduct_form #vproduct_brand").html(vproduct_brand);
+            $("#vproduct_brand_current").html(vproduct_brand);
+
             $("#edit_vproduct_form #vproduct_category").html(vproduct_category);
+            $("#vproduct_category_current").html(vproduct_category);
+
             $("#edit_vproduct_form #vproduct_description").html(vproduct_description);
             $("#vproduct_description_input").val(vproduct_description);
+
             $("#edit_vproduct_form #vproduct_pkgunit").html(vproduct_unit);
+            $("#vproduct_pkgunit_current").html(vproduct_unit);
+
             $("#edit_vproduct_form #vproduct_pkglot").html(vproduct_lot);
+            $("#vproduct_pkglot_current").html(vproduct_lot);
+
             $("#edit_vproduct_form #vproduct_psku").html(vproduct_psku);
+        }
+    });
+}
+
+function isBrandNameValid(brandName) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isBrandNameValid": 1, "brandname": brandName},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_brand_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_brand_valid").removeClass('badge-danger').addClass('badge-success');
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_brand_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_brand_valid").removeClass('badge-success').addClass('badge-danger');
+            }
+        }
+    });
+}
+
+function isCategoryNameValid(categoryName) {
+    // alert(categoryName);
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isCategoryNameValid": 1, "categoryname": categoryName},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_category_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_category_valid").removeClass('badge-danger').addClass('badge-success');
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_category_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_category_valid").removeClass('badge-success').addClass('badge-danger');
+            }
+        }
+    });
+}
+
+function isProductShortDescrValid(description) {
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isProductShortDescrValid": 1, "productshortdescr": description},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_description_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_description_valid").removeClass('badge-danger').addClass('badge-success');
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_description_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_description_valid").removeClass('badge-success').addClass('badge-danger');
+            }
+        }
+    });
+}
+            
+function isPackageUnitValid(unit) {
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isPkgUnitValid": 1, "pkgunit": unit},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_pkgunit_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_pkgunit_valid").removeClass('badge-danger').addClass('badge-success');
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_pkgunit_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_pkgunit_valid").removeClass('badge-success').addClass('badge-danger');
+            }
+        }
+    });
+}
+            
+function isPackageLotValid(lot) {
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isPkgLotValid": 1, "pkglot": lot},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_pkglot_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_pkglot_valid").removeClass('badge-danger').addClass('badge-success');
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_pkglot_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_pkglot_valid").removeClass('badge-success').addClass('badge-danger');
+            }
         }
     });
 }
@@ -3784,4 +4106,1297 @@ function createInlineOrder(form_data) {
             }
         });
     }   
+}
+
+
+/*
+ * Manage Customers
+ *
+ */
+
+function manageCustomer(form_data) {
+    
+    // Validate inputs 
+    if ($("#customer_name").val() === "") {  
+        alert("Customer Name is Required");
+    }
+    else if ($("#customer_address").val() === "") {
+        alert("Customer Address is Required");
+    }
+    else if ($("#customer_contact_person").val() === "") {
+        alert("Customer Contact Person's Name is Required");
+    }
+    else if ($("#customer_contact_email").val() === "") {
+        alert("Customer Contact Email is Required");
+    }
+    else if ($("#customer_contact_phone").val() === "") {
+        alert("Customer Contact Phone is Required");
+    }
+    else {
+        // reset indicators
+        $('input').removeClass("border-danger");
+    	$('#customer_contact_email_msg').html('');
+
+        // start_load();
+
+        // add the method name
+        form_data.push({ name: 'manageCustomer', value: 1 }); 
+        // console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/customers.php',  
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // end_load();
+                // console.log(response);
+                response = JSON.parse(response);
+                // alert("code: " + response.code + ", message: " + response.message);
+
+                // Reset the form
+                $("#manage_customer_form").trigger("reset");                
+
+                // Update any UI element
+                //$("#get_category").html(rsp);
+
+                // Prepare and send a notification
+                var status, msg;
+
+                if (response.code == 0) {
+                    status = "success";
+                    msg = "Customer successfully saved";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=customers&page=list_customers`;
+                }
+                else {
+                    status = "error";
+                    msg = response.message;
+
+                    // Notification using sweetalert lib
+                    swalert_notify(status, msg, status);
+
+                    // setTimeout(function(){
+                    //     //location.replace('dashboard.php?dir=users&page=list_users')
+                    //     window.location = `${baseUrl}/main.php?dir=users&page=list_users`;
+                    // }, 750)
+                }
+            }
+        });
+    }
+} 
+
+function deleteCustomer(id) {
+
+    start_load()
+
+    $.ajax({
+    	url:  baseUrlMain+'/core/ajax/main/customers.php?action=delete_customer',
+    	method:'POST',
+    	data:{customerid: id},
+    	success:function(response){
+            // alert(response);
+            end_load()
+
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Customer successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list users
+                window.location.reload();
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+
+                // setTimeout(function(){
+                //     window.location.reload();
+                // }, 2000)
+            }
+    	}
+    });
+}
+
+
+/*
+ * Manage Organizations
+ *
+ */
+
+function manageOrganization(form_data) {
+    
+    // Validate inputs 
+    if ($("#organization_name").val() === "") {  
+        alert("Organization Name is Required");
+    }
+    else if ($("#organization_address").val() === "") {
+        alert("Organization Address is Required");
+    }
+    else if ($("#organization_contact_person").val() === "") {
+        alert("Organization Contact Person's Name is Required");
+    }
+    else if ($("#organization_contact_email").val() === "") {
+        alert("Organization Contact Email is Required");
+    }
+    else if ($("#organization_contact_phone").val() === "") {
+        alert("Organization Contact Phone is Required");
+    }
+    else {
+        // reset indicators
+        $('input').removeClass("border-danger");
+    	$('#organization_contact_email_msg').html('');
+
+        // start_load();
+
+        // add the method name
+        form_data.push({ name: 'manageOrganization', value: 1 }); 
+        console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/organizations.php',  
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // end_load();
+                // alert(response);
+                response = JSON.parse(response);
+                // alert("code: " + response.code + ", message: " + response.message);
+
+                // Reset the form
+                $("#manage_organization_form").trigger("reset");                
+
+                // Update any UI element
+                //$("#get_category").html(rsp);
+
+                // Prepare and send a notification
+                var status, msg;
+
+                if (response.code == 0) {
+                    status = "success";
+                    msg = "Organization successfully saved";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=orgs&page=list_organizations`;
+                }
+                else {
+                    status = "error";
+                    msg = response.message;
+
+                    // Notification using sweetalert lib
+                    swalert_notify(status, msg, status);
+
+                    // setTimeout(function(){
+                    //     //location.replace('dashboard.php?dir=users&page=list_users')
+                    //     window.location = `${baseUrl}/main.php?dir=users&page=list_users`;
+                    // }, 750)
+                }
+            }
+        });
+    }
+} 
+
+function deleteOrganization(id) {
+
+    // start_load()
+
+    $.ajax({
+    	url:  baseUrlMain+'/core/ajax/main/organizations.php?action=delete_organization',
+    	method:'POST',
+    	data:{orgid: id},
+    	success:function(response){
+            // alert(response);
+            end_load()
+
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Organization successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list users
+                window.location.reload();
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+
+                // setTimeout(function(){
+                //     window.location.reload();
+                // }, 2000)
+            }
+    	}
+    });
+}
+
+
+/*
+ * Manage Members
+ *
+ */
+
+function manageMember(form_data) {
+    console.log(form_data);
+    
+    // Validate inputs 
+    if ($("#member_user").val() === "") {  
+        alert("Member's Name is Required");
+    }
+    else if ($("#member_department").val() === "") {
+        alert("Member's address is Required");
+    }
+    else if ($("#member_role").val() === "") {
+        alert("Member's functional role is Required");
+    }
+    else {
+        // reset indicators
+        $('input').removeClass("border-danger");
+
+        // start_load();
+
+        // add the method name
+        form_data.push({ name: 'manageMember', value: 1 }); 
+        // console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/members.php',  
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // end_load();
+                // alert(response);
+                response = JSON.parse(response);
+                // alert("code: " + response.code + ", message: " + response.message);
+
+                // Reset the form
+                $("#manage_member_form").trigger("reset");                
+
+                // Update any UI element
+                //$("#get_category").html(rsp);
+
+                // Prepare and send a notification
+                var status, msg;
+
+                if (response.code == 0) {
+                    status = "success";
+                    msg = "Member successfully saved";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=members&page=list_members`;
+                }
+                else {
+                    status = "error";
+                    msg = response.message;
+
+                    // Notification using sweetalert lib
+                    swalert_notify(status, msg, status);
+
+                    // setTimeout(function(){
+                    //     //location.replace('dashboard.php?dir=users&page=list_users')
+                    //     window.location = `${baseUrl}/main.php?dir=users&page=list_users`;
+                    // }, 750)
+                }
+            }
+        });
+    }
+} 
+
+function deleteMember(id) {
+
+    start_load()
+
+    $.ajax({
+    	url:  baseUrlMain+'/core/ajax/main/members.php?action=delete_member',
+    	method:'POST',
+    	data:{memberid: id},
+    	success:function(response){
+            // alert(response);
+            end_load()
+
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Customer successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list users
+                window.location.reload();
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+
+                // setTimeout(function(){
+                //     window.location.reload();
+                // }, 2000)
+            }
+    	}
+    });
+}
+
+
+
+/*
+ * Manage Vendor
+ *
+ */
+
+function manageVendor(form_data) {
+    
+    // Validate inputs 
+    if ($("#vendor_name").val() === "") {  
+        alert("Vendor Name is Required");
+    }
+    else if ($("#vendor_address").val() === "") {
+        alert("Vendor Address is Required");
+    }
+    else if ($("#vendor_contact_person").val() === "") {
+        alert("Vendor Contact Person's Name is Required");
+    }
+    else if ($("#vendor_contact_email").val() === "") {
+        alert("Vendor Contact Email is Required");
+    }
+    else if ($("#vendor_contact_phone").val() === "") {
+        alert("Vendor Contact Phone is Required");
+    }
+    else {
+        // reset indicators
+        $('input').removeClass("border-danger");
+    	$('#vendor_contact_email_msg').html('');
+
+        // start_load();
+
+        // add the method name
+        form_data.push({ name: 'manageVendor', value: 1 }); 
+        // console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/vendors.php',  
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // end_load();
+                // console.log(response);
+                response = JSON.parse(response);
+                // alert("code: " + response.code + ", message: " + response.message);
+
+                // Reset the form
+                $("#manage_vendor_form").trigger("reset");                
+
+                // Update any UI element
+                //$("#get_category").html(rsp);
+
+                // Prepare and send a notification
+                var status, msg;
+
+                if (response.code == 0) {
+                    status = "success";
+                    msg = "vendor successfully saved";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=vendors&page=list_vendors`;
+                }
+                else {
+                    status = "error";
+                    msg = response.message;
+
+                    // Notification using sweetalert lib
+                    swalert_notify(status, msg, status);
+
+                    // setTimeout(function(){
+                    //     //location.replace('dashboard.php?dir=users&page=list_users')
+                    //     window.location = `${baseUrl}/main.php?dir=users&page=list_users`;
+                    // }, 750)
+                }
+            }
+        });
+    }
+} 
+
+function deleteVendor(id) {
+
+    start_load()
+
+    $.ajax({
+    	url:  baseUrlMain+'/core/ajax/main/vendors.php?action=delete_vendor',
+    	method:'POST',
+    	data:{vendorid: id},
+    	success:function(response){
+            // alert(response);
+            end_load()
+
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Vendor successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list users
+                window.location.reload();
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+
+                // setTimeout(function(){
+                //     window.location.reload();
+                // }, 2000)
+            }
+    	}
+    });
+}
+
+
+/*
+ * Manage Domain Operator
+ *
+ */
+
+function manageDoperator(form_data) {
+
+    // start_load();
+
+    // add the method name
+    form_data.push({ name: 'manageDoperator', value: 1 }); 
+    // console.log(form_data);
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/doperator.php',  
+        method: 'POST',
+        type: 'text',
+        data: form_data,
+        success: function(response) {
+            // end_load();
+            // alert(response);
+
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Reset the form
+            $("#manage_customer_form").trigger("reset");                
+
+            // Update any UI element
+            //$("#get_category").html(rsp);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Customer successfully saved";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list roles
+                window.location = `${baseUrlMain}/main.php?dir=doperators&page=list_doperators`;
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+            }
+        }
+    });
+    
+} 
+
+function deleteDoperator(id) {
+
+    // start_load()
+
+    $.ajax({
+    	url:  baseUrlMain+'/core/ajax/main/doperator.php?action=delete_doperator',
+    	method:'POST',
+    	data:{doperatorid: id},
+    	success:function(response){
+            // alert(response);
+            // end_load()
+
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Domain operator successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list doperators
+                window.location.reload();
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+            }
+    	}
+    });
+}
+
+
+/*
+ * Manage Brands
+ *
+ */
+
+function getBrandById(brandId) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/brands.php',
+        method: 'GET',
+        data: { "getBrandById": 1, "brandid": brandId},
+        type: 'text',
+        success: function(response) {
+            response = JSON.parse(response);
+            // console.log(response);
+
+            var brand_id = response.id;
+            var brand_name = response.name;
+            var catalog_symbol = response.catalog_symbol;
+
+            $("#edit_brand_form #edit_brand_id").val(brand_id);
+            $("#edit_brand_form #edit_brand_name").val(brand_name);
+            $("#edit_brand_form #edit_brand_catalog_symbol").val(catalog_symbol);
+        }
+    });
+}
+
+function createNewBrand(form_data) {
+
+    // validate inputs
+    if ($("#brand_name").val() === "") {
+        alert("Please enter the brand name");
+    }
+    else if ($("#brand_catalog_symbol").val().length !== 3) {
+        alert("The brand catalog symbol must be 3 characters");
+    }
+    else {
+        // add the method name
+        form_data.push({ name: 'createNewBrand', value: 1 });
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/brands.php',
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert(response.message);
+
+                // Reset the form
+                $("#create_brand_form").trigger("reset");                // the jquery way
+
+                // Update any UI element // e.g. '$("#get_category").html(rsp);'
+
+                // Close the modal
+                $('#createBrandModal').modal('toggle'); 
+                // $("#modal .close").click();             // worst case scenario
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to create a new brand', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                   
+                    status = "success";
+                    msg = "New brand successfully created";
+                    
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list brands
+                    window.location = `${baseUrlMain}/main.php?dir=brands&page=list_brands`;
+                }
+            }
+        });
+    } 
+}  
+
+function updateBrand(form_data) {
+
+    // validate inputs
+    if ($("#edit_brand_name").val() === "") {
+        alert("Please enter the brand name");
+    }
+    else {
+        // add the method name
+        form_data.push({ name: 'updateBrand', value: 1 });
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/brands.php',
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert("response code: " + response.code);
+
+                // Reset the form
+                $("#edit_brand_form").trigger("reset");                
+
+                // Close the modal
+                $('#editBrandModal').modal('toggle'); 
+                // $("#modal .close").click();             // worst case scenario
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to update brand', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                    
+                    status = "success";
+                    msg = "Brand successfully updated";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=brands&page=list_brands`;
+                }
+            }
+        });
+    }
+}  
+
+function deleteBrand(brandId) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/brands.php',
+        method: "POST",
+        data: { deleteBrand: 1, brandid: brandId },
+        success: function(response) {
+            // alert(response);
+            response = JSON.parse(response);
+            // alert(response.message);
+
+            if (response.code !== 0) {
+                // Notification using sweetalert lib
+                swalert_notify("Failed", 'Failed to delete brand', 'error');
+            }
+            else {
+                // Prepare and send a notification
+                var status, msg;
+                status = "success";
+                msg = "Brand successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list doperators
+                window.location.reload();
+            }
+        }
+    });
+}
+
+
+/*
+ * Manage Categories
+ *
+ */
+
+function getCategoryById(categoryId) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/categories.php',
+        method: 'GET',
+        data: { "getCategoryById": 1, "categoryid": categoryId},
+        type: 'text',
+        success: function(response) {
+            response = JSON.parse(response);
+            // console.log(response);
+
+            var category_id = response.id;
+            var category_name = response.name;
+            var category_abbrv = response.abbrv;
+            var category_image = response.cat_image;
+            var catalog_symbol = response.catalog_symbol;
+            var category_parentid = "NULL";                     // response.parent_id;
+            var category_description = response.description;
+
+            $("#edit_category_form #edit_category_id").val(category_id);
+            $("#edit_category_form #edit_category_name").val(category_name);
+            $("#edit_category_form #edit_category_parentid").val(category_parentid);
+            $("#edit_category_form #edit_category_abbrv").val(category_abbrv);
+            $("#edit_category_form #edit_category_description").val(category_description);
+            $("#edit_category_form #edit_category_catalog_symbol").val(catalog_symbol);
+
+            $('#edit_category_form #edit_category_img').attr('src', `${baseUrlMain}/uploads/categories_pix/${category_image}`);
+            $('label[for = edit_category_img_file]').text( category_image );
+        }
+    });
+}
+
+function createNewCategory(form_data) {
+
+    // validate inputs
+    if ($("#category_name").val() === "") {
+        alert("Please enter the category name");
+    }
+    else if ($("#category_catalog_symbol").val().length !== 2) {
+        alert("The category catalog symbol must be 2 characters");
+    }
+    else {
+        // add the method name
+        form_data.append('createNewCategory', 1);
+
+        // Print the FormData
+        // for (var pair of form_data.entries()) { console.log(pair[0]+ ', ' + pair[1]); }
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/categories.php',
+            method: 'POST',
+            cache: false,  
+            contentType: false,              
+            processData: false,
+            // dataType: 'text',             
+            // type: 'POST',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert(response.message);
+
+                // Reset the form
+                $("#create_category_form").trigger("reset");                
+
+                // Update any UI element // e.g. '$("#get_category").html(rsp);'
+
+                // Close the modal
+                $('#createCategoryModal').modal('toggle'); 
+                // $("#modal .close").click();             // worst case scenario
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to create a new category', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                   
+                    status = "success";
+                    msg = "New category successfully created";
+                    
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list categories
+                    window.location = `${baseUrlMain}/main.php?dir=categories&page=list_categories`;
+                }
+            }
+        });
+    } 
+}  
+
+function updateCategory(form_data) {
+
+    // validate inputs
+    if ($("#edit_category_name").val() === "") {
+        alert("Please enter the category name");
+    }
+    else if ($("#edit_category_catalog_symbol").val().length !== 2) {
+        alert("The category catalog symbol must be 2 characters");
+    }
+    else {
+        // add the method name
+        form_data.append('updateCategory', 1);
+
+        // Print the FormData
+        // for (var pair of form_data.entries()) { console.log(pair[0]+ ', ' + pair[1]); }
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/categories.php',
+            method: 'POST',
+            cache: false,  
+            contentType: false,              
+            processData: false,
+            // dataType: 'text',             
+            // type: 'POST',
+            data: form_data,
+            success: function(response) {
+                // console.log(response);
+                response = JSON.parse(response);
+                // alert("response code: " + response.code);
+
+                // Reset the form
+                $("#edit_category_form").trigger("reset");                
+
+                // Close the modal
+                $('#editCategoryModal').modal('toggle'); 
+                // $("#modal .close").click();             // worst case scenario
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to update category', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                    
+                    status = "success";
+                    msg = "Category successfully updated";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=categories&page=list_categories`;
+                }
+            }
+        });
+    }
+}  
+
+function deleteCategory(categoryId) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/categories.php',
+        method: "POST",
+        data: { deleteCategory: 1, categoryid: categoryId },
+        success: function(response) {
+            // alert(response);
+            response = JSON.parse(response);
+            // alert(response.message);
+
+            if (response.code !== 0) {
+                // Notification using sweetalert lib
+                swalert_notify("Failed", 'Failed to delete category', 'error');
+            }
+            else {
+                // Prepare and send a notification
+                var status, msg;
+                status = "success";
+                msg = "Category successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list doperators
+                window.location.reload();
+            }
+        }
+    });
+}
+
+
+/*
+ * Manage Store Units
+ *
+ */
+
+function initializeOrganizationStoreUnitSelect() {
+
+    // Clear the select
+    $("#organization_id").empty();
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/organizations.php',
+        method: 'POST',
+        data: {
+            get_all_organizations: 1
+        },
+        datatype: 'json',
+        success: function(data) {
+            // console.log(data);
+            var parsed = JSON.parse(data);
+            // console.log(parsed);
+
+            $.each(parsed, function(key, value) {
+                // console.log("key: ", key, "value: ", value);
+                $("#organization_id").append(
+                    "<option value=" + value.id +">" + value.name +"</option>"
+                );
+            });
+
+            // Set the first element as selected
+            var organization_id = parsed[0].id;
+            // $("#organizationid").val(organization_id);
+
+            // Now trigger the domain select
+            initializeDomainsStoreUnitSelect(organization_id);
+        }
+    });
+}
+
+function initializeDomainsStoreUnitSelect(organizationId) {
+
+    // Clear the select
+    $("#domain_id").empty();
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/organizations.php',
+        method: 'POST',
+        data: {
+            get_domain_by_organization: 1,
+            organizationid: organizationId
+        },
+        datatype: 'json',
+        success: function(data) {
+            // alert(data);
+            var parsed = JSON.parse(data);
+            // console.log(parsed);
+
+            $.each(parsed, function(key, value) {
+                // console.log("key: ", key, "value: ", value);
+                $("#domain_id").append(
+                    "<option value=" + value.id +">" + value.name + "</option>"
+                );
+            });
+
+            // Set the first element as selected
+            var domain_id = parsed[0].id;
+            $("#domain_id").val(domain_id);
+
+            // // Now trigger the subdom select
+            // initializeSubDomsStoreUnitSelect(domain_id);
+        }
+    })
+}
+
+// function initializeSubDomsStoreUnitSelect(domainId) {
+
+//     // Clear the select
+//     $("#subdom_id").empty();
+
+//     $.ajax({
+//         url: baseUrlMain+'/core/ajax/main/subdomains.php',
+//         method: 'POST',
+//         data: {
+//             get_subdoms_by_domain: 1,
+//             domainid: domainId
+//         },
+//         datatype: 'json',
+//         success: function(data) {
+//             // alert(data);
+//             var parsed = JSON.parse(data);
+//             // console.log(parsed);
+
+//             $.each(parsed, function(key, value) {
+//                 // console.log("key: ", key, "value: ", value.status_label);
+//                 $("#subdom_id").append(
+//                     "<option value=" + value.id +">" + value.name + "</option>"
+//                 );
+//             });
+
+//             // Set the first element as selected
+//             $("#subdom_id").val(parsed[0].id);
+//         }
+//     })
+// }
+
+function organizationChangeUpdateStoreUnitSelect( value ) {
+
+    // Get the organization's domain
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/organizations.php',
+        method: 'POST',
+        data: {
+            get_organization_by_id: 1,
+            organizationid: value
+        },
+        datatype: 'json',
+        success: function(data) {
+            // alert(data);
+            var parsed = JSON.parse(data);
+            // console.log(parsed);
+
+            // Now trigger the subdom select
+            initializeDomainsStoreUnitSelect(parsed.domain_id);
+        }
+    })  
+}
+
+function createStoreUnit(form_data) {
+
+    // validate inputs
+    if ($("#storeunit_name").val() === "") {
+        alert("Please enter store unit name first.");
+    }
+    else if ($("#subdom_name").val() === "") {
+        alert("Please enter the subdomain name.");
+    }
+    else {
+        // add the method name
+        form_data.push({ name: 'createStoreUnit', value: 1 });
+        // console.log(form_data);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/subdomains.php',
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // alert(response.message);
+
+                // Reset the form
+                $("#create_storeunit_form").trigger("reset");                
+
+                if (response.code !== 0) {
+                    // Notification using sweetalert lib
+                    swalert_notify("Failed", 'Failed to add a new storeunit', 'error');
+                }
+                else {
+                    // Prepare and send a notification
+                    var status, msg;
+                    status = "success";
+                    msg = "New storeunit successfully created and added.";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=subdoms&page=list_store_units`;
+                }
+            }
+        });
+    }
+}
+
+function deleteStoreUnit(storeunitId) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/subdomains.php',
+        method: "POST",
+        data: { deleteSubDomain: 1, subdomid: storeunitId },
+        success: function(response) {
+            // alert(response);
+            response = JSON.parse(response);
+            // alert(response.message);
+
+            if (response.code !== 0) {
+                // Notification using sweetalert lib
+                swalert_notify("Failed", 'Failed to delete store unit', 'error');
+            }
+            else {
+                // Prepare and send a notification
+                var status, msg;
+                status = "success";
+                msg = "Store Unit successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // Do a redirect to list doperators
+                window.location.reload();
+            }
+        }
+    });
 }

@@ -358,7 +358,13 @@ function getUserById($userId) {
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
 
-        $res = $opr->sqlSelect('SELECT * FROM users WHERE id=?', 'i', $userId);
+        $sql = "SELECT id, name, email, password, domain, 
+                groupid, 
+                (SELECT name FROM groups WHERE groupid = groups.id) as group_name,
+                verified, avatar, created_on
+                FROM users WHERE id=?";
+
+        $res = $opr->sqlSelect($sql, 'i', $userId);
 
         if($res && $res->num_rows === 1) {
             $user = $res->fetch_assoc();
@@ -409,6 +415,56 @@ function fetch_all_organizations() {
         $opr->close();
 
         return $orgs;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetch_all_organization_types() {
+    $orgtypes = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, parent, type, label, value, description, catalog_symbol
+                FROM `static_codes`
+                WHERE parent='organizations' AND type='orgtypes'";
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $orgtypes[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $orgtypes;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getOrganizationById($orgId) {
+    $org = [];	
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT * FROM organizations WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $orgId);
+
+        if ($results && $results->num_rows === 1) {
+            $org = $results->fetch_assoc();
+            $results->free_result();
+            return $org;
+        }
+
+        $opr->close();
     }
     else {
         return -1;                  // Failed to connect to database
@@ -650,12 +706,12 @@ function fetch_all_storeunits() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT parent_domain_id, 
+        $sql = "SELECT id, storeunit, parent_domain_id, 
                 (SELECT name FROM `organizations` WHERE `organizations`.domain_id = parent_domain_id) as org_name, 
                 (SELECT name FROM `domains` WHERE `subdomains`.parent_domain_id = `domains`.id) as domain_name,
                 subdomains.name as sub_dom, 
                 subdomains.description as sub_dom_descr
-                FROM `subdomains`";
+                FROM `subdomains` WHERE storeunit != ''";
 
         // Restrict view of all users only to admins
         if (!isRoleInGroup('admin', $userGroupId)) {
@@ -673,6 +729,37 @@ function fetch_all_storeunits() {
         $opr->close();
 
         return $storeunits;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getStoreUnitById($subdomId) {
+    $storeunit = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, storeunit, 
+                parent_domain_id, 
+                (SELECT name FROM organizations WHERE parent_domain_id = organizations.domain_id) as organization_name,
+                (SELECT type FROM organizations WHERE parent_domain_id = organizations.domain_id) as organization_type,
+                (SELECT name FROM domains WHERE parent_domain_id = domains.id) as domain_name,
+                type, description 
+                FROM `subdomains` WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $subdomId);
+
+        if ($results && $results->num_rows === 1) {
+            $storeunit = $results->fetch_assoc();
+            $results->free_result();
+            return $storeunit;  
+        }
+        else {
+            return -2;              // StoreUnit not found
+        }
+        $opr->close();
     }
     else {
         return -1;                  // Failed to connect to database
@@ -793,6 +880,29 @@ function fetch_all_customers() {
     }  
 }
 
+function getCustomerById($customerId) {
+    $customer = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT * FROM organizations WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $customerId);
+
+        if ($results && $results->num_rows === 1) {
+            $customer = $results->fetch_assoc();
+            $results->free_result();
+            return $customer;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
 /*
  * Manage Vendors
  * 
@@ -825,13 +935,39 @@ function fetch_all_vendors() {
     }  
 }
 
+function getVendorByIdV2($vendorId) {
+    $vendor = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, domain_id, (SELECT name FROM `domains` WHERE domain_id = `domains`.id) 
+                as domain, type, address, contact_person, contact_email, contact_phone, description 
+                FROM `organizations` WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $vendorId);
+
+        if ($results && $results->num_rows === 1) {
+            $vendor = $results->fetch_assoc();
+            $results->free_result();
+            return $vendor;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+
 /*
- * Manage Staff
+ * Manage Members
  * 
  */
 
-function fetch_all_staff() {
-    $staff = array();
+function fetch_all_members() {
+    $members = array();
 
     $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
     $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
@@ -841,13 +977,13 @@ function fetch_all_staff() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = 'SELECT `staff`.id, 
-                (SELECT name FROM `users` WHERE `users`.id = `staff`.user_id) AS username,
+        $sql = 'SELECT `members`.id, 
+                (SELECT name FROM `users` WHERE `users`.id = `members`.user_id) AS username,
                 `organizations`.domain_id, 
                 (SELECT name FROM `domains` WHERE `organizations`.domain_id = `domains`.id) AS domain,
-                `staff`.department, `staff`.functional_role
-                FROM `staff` INNER JOIN `organizations`
-                ON `staff`.org_id = `organizations`.id';
+                `members`.department, `members`.functional_role
+                FROM `members` INNER JOIN `organizations`
+                ON `members`.org_id = `organizations`.id';
 
         // Restrict view of all users only to admins
         if (!isRoleInGroup('admin', $userGroupId)) {
@@ -858,13 +994,44 @@ function fetch_all_staff() {
 
         if ($results && $results->num_rows > 0) {
             while ($row = $results->fetch_assoc()) {
-                $staff[] = $row;
+                $members[] = $row;
             }
             $results->free_result();
         }
         $opr->close();
 
-        return $staff;
+        return $members;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getMemberById($memberId) {
+    $member = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, user_id, 
+                (SELECT name FROM users WHERE user_id = users.id) as username,
+                org_id, 
+                (SELECT name FROM organizations WHERE org_id = organizations.id) as orgname,
+                (SELECT type FROM organizations WHERE org_id = organizations.id) as orgtype,
+                domain_id, 
+                (SELECT name FROM domains WHERE domain_id = domains.id) as domain_name,
+                functional_role, department
+                FROM members WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $memberId);
+
+        if ($results && $results->num_rows === 1) {
+            $member = $results->fetch_assoc();
+            $results->free_result();
+            return $member;
+        }
+
+        $opr->close();
     }
     else {
         return -1;                  // Failed to connect to database
@@ -921,6 +1088,177 @@ function fetch_all_stock() {
 
 
 /*
+ * Manage Stock Txns
+ * 
+ */
+
+function fetch_stock_txns($start_date, $end_date) {
+    $stock_txns = array();
+
+    // echo "StartDate:" . $start_date . "<br/>";
+    // echo "EndDate:" . $end_date . "<br/>";
+    // Add one day to date string
+    $end_date = date('Y-m-d', strtotime($end_date . ' +1 day'));
+
+    // $userDomain = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $userId = $_SESSION['userid'];
+    $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    $userDomain = getDomainByName($userDomainName);
+    $userSubDoms = getSubDomsByUserId($userId);
+
+    $opr = new DBOperation();       // Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, txn_date, table_str, record_id, 
+                sku, 
+                (SELECT product_name FROM products WHERE products.sku = stock_txns.sku) as product_name,
+                qty, action_type, 
+                status, user_id, 
+                (SELECT name FROM users WHERE user_id = users.id) as username,
+                domain_id, 
+                (SELECT name FROM domains WHERE domain_id = domains.id) as domain_name,
+                sub_dom_id,
+                (SELECT name FROM subdomains WHERE sub_dom_id = subdomains.id) as subdom_name
+                FROM stock_txns";
+
+        $date_range = " WHERE txn_date BETWEEN '" . $start_date . "' AND '" . $end_date . "'";
+        $sql .= $date_range;
+
+        // echo $sql;
+
+        // Restrict view of all users only to admins
+        if (!isRoleInGroup('admin', $userGroupId)) {
+            // Restrict view only to user's provisioned subdomains
+            $sql .= " AND domain_id='" . $userDomain['id'] ."'";
+            // $sql .= " AND `vp`.sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $stock_txns[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $stock_txns;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+
+/*
+ * Manage IMS Events
+ * 
+ */
+
+function fetch_ims_events($start_date, $end_date) {
+    $ims_events = array();
+
+    // Add one day to date string
+    $end_date = date('Y-m-d', strtotime($end_date . ' +1 day'));
+
+    // $userId = $_SESSION['userid'];
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+    // $userSubDoms = getSubDomsByUserId($userId);
+
+    $opr = new DBOperation();       // Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT * FROM ims_events";
+
+        $date_range = " WHERE created_on BETWEEN '" . $start_date . "' AND '" . $end_date . "'";
+        $sql .= $date_range;
+
+        // echo $sql;
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     // Restrict view only to user's provisioned subdomains
+        //     $sql .= " AND domain_id='" . $userDomain['id'] ."'";
+        //     // $sql .= " AND `vp`.sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $ims_events[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $ims_events;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+
+/*
+ * Manage IMS Requests
+ * 
+ */
+
+function fetch_ims_requests($start_date, $end_date) {
+    $ims_requests = array();
+
+    // Add one day to date string
+    $end_date = date('Y-m-d', strtotime($end_date . ' +1 day'));
+
+    // $userId = $_SESSION['userid'];
+    // $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    // $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    // $userDomain = getDomainByName($userDomainName);
+    // $userSubDoms = getSubDomsByUserId($userId);
+
+    $opr = new DBOperation();       // Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT * FROM ims_requests";
+
+        $date_range = " WHERE created_on BETWEEN '" . $start_date . "' AND '" . $end_date . "'";
+        $sql .= $date_range;
+
+        // echo $sql;
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     // Restrict view only to user's provisioned subdomains
+        //     $sql .= " AND domain_id='" . $userDomain['id'] ."'";
+        //     // $sql .= " AND `vp`.sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $ims_requests[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $ims_requests;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    } 
+}
+
+
+/*
  * Manage Domain Operators
  * 
  */
@@ -941,8 +1279,8 @@ function fetch_all_dom_operators() {
                 (SELECT name FROM `domains` WHERE `do`.domain_id = `domains`.id) as domain,
                 `do`.sub_dom_id, 
                 (SELECT name FROM `subdomains` WHERE `do`.sub_dom_id = `subdomains`.id) as sub_dom,
-                `do`.dom_function_id,  
-                (SELECT sys_value FROM `sys_settings` WHERE `do`.dom_function_id = `sys_settings`.id) as dom_function,
+                `do`.dom_function_key,  
+                (SELECT sys_value FROM `sys_settings` WHERE `do`.dom_function_key = `sys_settings`.sys_key) as dom_function,
                 `do`.description, 
                 `do`.assoc_role, 
                 (SELECT name FROM `roles` WHERE `do`.assoc_role = `roles`.id) as assoc_rolename,
@@ -966,6 +1304,67 @@ function fetch_all_dom_operators() {
         $opr->close();
 
         return $operators;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function getDoperatorById($doperatorId) {
+    $doperator = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT `do`.id, 
+                `do`.domain_id, 
+                (SELECT name FROM `domains` WHERE `do`.domain_id = `domains`.id) as domain,
+                `do`.sub_dom_id, 
+                (SELECT name FROM `subdomains` WHERE `do`.sub_dom_id = `subdomains`.id) as sub_dom,
+                `do`.dom_function_key,  
+                (SELECT sys_value FROM `sys_settings` WHERE `do`.dom_function_key = `sys_settings`.sys_key) as dom_function,
+                `do`.description, 
+                `do`.assoc_role, 
+                (SELECT name FROM `roles` WHERE `do`.assoc_role = `roles`.id) as assoc_rolename,
+                `do`.user_id,
+                (SELECT name FROM `users` WHERE `do`.user_id = `users`.id) as username
+                FROM `domain_operators` as do WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $doperatorId);
+
+        if ($results && $results->num_rows === 1) {
+            $doperator = $results->fetch_assoc();
+            $results->free_result();
+            return $doperator;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetch_all_dom_operator_functions() {
+    $doperator_functions = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT sys_key, sys_value 
+                FROM `sys_settings` WHERE sys_key LIKE 'dom_function%'";
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $doperator_functions[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $doperator_functions;
     }
     else {
         return -1;                  // Failed to connect to database
@@ -1026,7 +1425,7 @@ function fetch_all_brands() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT brands.name, brands.created_on, users.name as created_by, catalog_symbol
+        $sql = "SELECT brands.id as brand_id, brands.name, brands.created_on, users.name as created_by, catalog_symbol
                 FROM brands INNER JOIN users 
                 ON brands.created_by = users.id";
 
@@ -1052,6 +1451,33 @@ function fetch_all_brands() {
     }  
 }
 
+function fetchBrandById($brandId) {
+    $brand = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, created_on, 
+                created_by, 
+                (SELECT name FROM users WHERE created_by = users.id) as creator,
+                catalog_symbol
+                FROM `brands` WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $brandId);
+
+        if ($results && $results->num_rows === 1) {
+            $brand = $results->fetch_assoc();
+            $results->free_result();
+            return $brand;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
 
 /*
  * Manage Categories
@@ -1067,7 +1493,7 @@ function fetch_all_categories() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT categories.name, categories.parent_id, categories.description, catalog_symbol, 
+        $sql = "SELECT categories.id as category_id, categories.name, categories.parent_id, categories.description, catalog_symbol, 
                 categories.created_on, users.name as created_by FROM categories INNER JOIN users 
                 ON categories.created_by = users.id";
 
@@ -1093,6 +1519,33 @@ function fetch_all_categories() {
     }  
 }
 
+function fetchCategoryById($categoryId) {
+    $category = array();
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, name, abbrv, parent_id, description, cat_image, created_on, 
+                created_by, 
+                (SELECT name FROM users WHERE created_by = users.id) as creator,
+                catalog_symbol
+                FROM `categories` WHERE id=?";
+
+        $results = $opr->sqlSelect($sql, 'i', $categoryId);
+
+        if ($results && $results->num_rows === 1) {
+            $category = $results->fetch_assoc();
+            $results->free_result();
+            return $category;
+        }
+
+        $opr->close();
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
 
 /*
  * Manage Products
@@ -1108,8 +1561,9 @@ function fetch_all_products() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT products.product_name, products.sku, products.unit,
-                products.weight, products.volume, products.color, products.size,
+        $sql = "SELECT products.product_name, products.sku, products.unit, 
+                products.lot, products.per_lot, products.features, products.attributes, 
+                products.brand_id, products.category_id,
                 products.short_descr, products.unit_price, products.keep_stock,
                 products.created_on, users.name as created_by 
                 FROM products INNER JOIN users 

@@ -77,7 +77,8 @@ $(document).ready(function(){
     $('#listUsers').DataTable();     // initialize the datatable
 
     // View User
-    $('.view_user').click(function(){
+    // $('.view_user').click(function(){
+    $('#listUsers').delegate('.view_user', 'click', function(e) {
         // pull in the html view page with uni_modal
 		uni_modal("<i class='fa fa-id-card'></i> User Details", "main/users/inc/view_user.php?id=" + $(this).attr('data-id'));
 	});

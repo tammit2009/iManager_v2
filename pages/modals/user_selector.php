@@ -152,10 +152,10 @@ $(document).ready(function(){
                 $('#conversationTargetUserIDs').val(inputData);
             }            
         }
-        else if (xdata == 'addStaffUser') {
+        else if (xdata == 'addMemberUser') {
             // Set the selected users into the input field
-            $('#addStaffUser').val(userName);
-            $('#addStaffUserId').val(userID);
+            $('#member_user').val(userName);
+            $('#member_user_id').val(userID);
         }
     });
 

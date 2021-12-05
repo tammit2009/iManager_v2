@@ -7,7 +7,8 @@
             <div class="card-header bg-white">
                 <div class="card-header-panel d-flex align-items-center justify-content-between">
                     <h3 class="my-0">Categories</h3>
-                    <a href="./main.php?dir=categories&page=add_user" class="btn btn-block btn-sm btn-default btn-flat border-info">
+                    <a href="#" class="btn btn-block btn-sm btn-default btn-flat border-info" 
+                                data-toggle="modal" data-target="#createCategoryModal">
                         <i class="fa fa-plus"></i> Add New Category
                     </a>
                 </div>
@@ -21,7 +22,7 @@
                     echo "No Record Found"; exit;
                 } ?>
                 
-                <table class="table tabe-hover table-bordered table-users" id="listCategories">
+                <table class="table table-bordered table-users" id="listCategories">
 
                     <thead>
                         <tr>
@@ -50,11 +51,11 @@
                                     Action
                                 </button>
                                 <div class="dropdown-menu">
-                                    <a class="dropdown-item view_category" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
+                                    <a class="dropdown-item view_category" href="javascript:void(0)" data-id="<?php echo $row['category_id']; ?>">View</a>
                                     <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="./main.php?dir=category&page=edit_category&amp;id=<?php echo $row['id']; ?>">Edit</a>
+                                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editCategoryModal" data-categoryid="<?php echo $row['category_id']; ?>">Edit</a>
                                     <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item delete_category" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">Delete</a>
+                                    <a class="dropdown-item delete_category" href="javascript:void(0)" data-id="<?php echo $row['category_id']; ?>">Delete</a>
                                 </div>
                             </td>
                         </tr>
@@ -69,6 +70,9 @@
     </div>
 </div>
 
+<!-- Modals -->
+<?php include('./pages/main/categories/modals/create_category_modal.php'); ?>
+<?php include('./pages/main/categories/modals/edit_category_modal.php'); ?>
 <?php include('./pages/modals/confirm.php'); ?>
 <?php include('./pages/modals/uni_modal.php'); ?>
 
@@ -79,16 +83,16 @@ $(document).ready(function(){
 
     $('#listCategories').DataTable();     // initialize the datatable
 
-    // View User
-    $('.view_category').click(function(){
+    $('#listCategories').delegate('.view_category', 'click', function(e) {
         // pull in the html view page with uni_modal
 		uni_modal("<i class='fa fa-id-card'></i> Category Details", "main/categories/inc/view_category.php?id=" + $(this).attr('data-id'));
-	});
+    })
 
-    // Delete User
+    // Delete Category
     $('#listCategories').delegate('.delete_category', 'click', function(e) {
         doConfirm("Are you sure to delete this category?", "deleteCategory", [ $(this).attr('data-id') ])
     })
+
 });
 
 </script>

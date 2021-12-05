@@ -26,6 +26,12 @@ defined('SVC_PATH') ? null      : define('SVC_PATH',        CORE_PATH.DS.'servic
 defined('PROFILE_PIX_PATH') ? null : define('PROFILE_PIX_PATH', UPLOADS_PATH.DS.'profile_pix'.DS);
 defined('PROFILE_PIX_URL_BASE_PATH') ? null  : define("PROFILE_PIX_URL_BASE_PATH", DOMAIN.'/uploads/profile_pix/');
 
+defined('CATEGORIES_PIX_PATH') ? null : define('CATEGORIES_PIX_PATH', UPLOADS_PATH.DS.'categories_pix'.DS);
+defined('CATEGORIES_PIX_URL_BASE_PATH') ? null  : define("CATEGORIES_PIX_URL_BASE_PATH", DOMAIN.'/uploads/categories_pix/');
+
+defined('PRODUCTS_PIX_PATH') ? null : define('PRODUCTS_PIX_PATH', UPLOADS_PATH.DS.'products_pix'.DS);
+defined('PRODUCTS_PIX_URL_BASE_PATH') ? null  : define("PRODUCTS_PIX_URL_BASE_PATH", DOMAIN.'/uploads/products_pix/');
+
 // Load the config & utils files first (note that the order matters)
 require_once(INC_PATH.DS.'dotenv.php');
 require_once(INC_PATH.DS.'utils.php');

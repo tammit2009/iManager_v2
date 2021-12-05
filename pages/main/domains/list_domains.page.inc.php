@@ -49,7 +49,7 @@
                                 Action
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="./main.php?dir=orgs&amp;page=view_domain&amp;id=<?php echo $domain['id']; ?>">View</a>
+                                <a class="dropdown-item" href="./main.php?dir=domains&amp;page=view_domain&amp;id=<?php echo $domain['id']; ?>">View</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editDomainModal" data-domainid="<?php echo $domain['id']; ?>">Edit</a>
                                 <div class="dropdown-divider"></div>
@@ -70,8 +70,8 @@
 </div>
 
 <!-- Modals -->
-<?php include('./pages/main/orgs/modals/create_domain_modal.php'); ?>
-<?php include('./pages/main/orgs/modals/edit_domain_modal.php'); ?>
+<?php include('./pages/main/domains/modals/create_domain_modal.php'); ?>
+<?php include('./pages/main/domains/modals/edit_domain_modal.php'); ?>
 
 <script> 
 $(document).ready(function() {
