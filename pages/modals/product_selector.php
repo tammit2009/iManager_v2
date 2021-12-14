@@ -15,7 +15,7 @@
                 }
                 
                 $res = $opr->sqlSelect("SELECT products.id, products.product_name, products.sku, products.unit,
-                                        products.weight, products.volume, products.color, products.size,
+                                        products.features, products.attributes,
                                         products.short_descr, products.unit_price, products.keep_stock,
                                         products.created_on, users.name as created_by 
                                         FROM products INNER JOIN users 

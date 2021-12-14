@@ -427,7 +427,9 @@ function generateCustomerPurchaseRequisition( $preq_date, $originator_id, $appro
         // $test_str = $preqNo.",'".$preq_date."','".$preq_descr."',".$originator_id.",".$approver_id.",'',";
         // $test_str .= $customer_id.",".$domain_id.",". $subdom_id.",".$preq_subtotal.", 0, 0,'".$preq_notes."'";
         // echo $test_str;
-       
+ 
+        //N3YNEJHX,'2021-12-14 14:33','Test Customer PR #3',8,1,'',,2,4,29990, 0, 0,'Buy dental kits'
+
         $preq_query = "INSERT INTO customer_preqs VALUES (NULL, ?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?)";
         $id = $opr->sqlInsert($preq_query, 'sssiiiiidiis', 
             $preqNo,            // preq_no
@@ -447,7 +449,7 @@ function generateCustomerPurchaseRequisition( $preq_date, $originator_id, $appro
         if ($id > 0) {          // New Purchase Requisition inserted with id: $id
 
             // Create purchase order list items with the target products for the vendor
-            $line_item_query = "INSERT INTO customer_preq_line_items VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)";
+            $line_item_query = "INSERT INTO customer_preq_line_items VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, 0)";
 
             $subtotal = 0;
 

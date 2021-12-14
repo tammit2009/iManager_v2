@@ -16,7 +16,7 @@ if (isset($_GET["getSubDomById"])) {
 // Fetch Subdomains By domainId
 if (isset($_POST["get_subdoms_by_domain"])) {
     if (isset($_POST["domainid"])) {
-        $result = getSubDomsByDomainId2($_POST['domainid']); 
+        $result = getSubDomsByDomainId2($_POST['domainid']);  
         echo json_encode($result);
     }
     else {

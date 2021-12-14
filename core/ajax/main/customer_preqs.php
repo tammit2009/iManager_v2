@@ -123,19 +123,6 @@ if (isset($_POST["createPurchaseRequisition"]) AND isset($_POST["preq_originator
     $arr_product_rate          = $_POST["product_rate"];
     $arr_product_total         = $_POST["product_total"];
 
-    // print_r($arr_product_descr);
-
-    // $vat                = $_POST["preq_vat"];
-    // $discount           = $_POST["preq_discount"];
-    // $total_amt          = $_POST["preq_total_amt"];
-    // $grand_total        = $_POST["preq_grand_total"];
-    // $paid_amt           = $_POST["preq_paid_amount"];
-    // $due                = $_POST["preq_due_amount"];
-    // $shipping           = $_POST["preq_shipping"];
-    // $shipping_method    = $_POST["preq_shipping_method"];
-    // $payment_method     = $_POST["preq_payment_method"];
-    // $payment_status     = $_POST["preq_payment_status"];
-
     // Generate a requisition
     $res = generateCustomerPurchaseRequisition( $preq_date, $originator_id, $approver_id, $customer_id, $domainid, $subdomid,  
                                 $preq_descr, $arr_product_id, $arr_product_name, $arr_product_descr, 

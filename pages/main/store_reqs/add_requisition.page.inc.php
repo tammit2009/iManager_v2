@@ -183,7 +183,7 @@ $(document).ready(function() {
     });
 
     $("#remove").click(function() {
-        $("#requisition_item").children("tr:last").remove();
+        $("#store_requisition_item").children("tr:last").remove();
     });
 
     $("#store_requisition_item").delegate('.stock_product_id', "change", function() {

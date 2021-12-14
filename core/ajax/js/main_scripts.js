@@ -1751,6 +1751,50 @@ function createSKU(form_data) {
     }
 }
 
+function getNextSKU(form_data, callback) {
+    // console.log(form_data);
+
+    // validate inputs
+    if (form_data.productname === "") {
+        alert("Product Name is Required");
+    }
+    else if (form_data.brandname === "") {
+        alert("Brand Name is Required");
+    }
+    else if (form_data.categoryname === "") {
+        alert("Category Name is Required");
+    }
+    else if (form_data.pkgunitname === "") {
+        alert("Packaging Unit is Required");
+    }
+    else if (form_data.pkglotname === "") {
+        alert("Packaging Lot is Required");
+    }
+    else {
+        // add the method name
+        form_data = { ...form_data, getNextSKU: 1 };
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/stock.php',
+            method: 'POST',
+            type: 'text',
+            data: form_data,
+            success: function(response) {
+                // alert(response);
+                response = JSON.parse(response);
+                // console.log(response);
+
+                if (response.code == 0) {
+                    callback(response.sku);
+                }
+                else {
+                    callback("result ERROR");
+                }
+            }
+        });
+    }
+}
+
 
 /*
  * Manage Store Requisitions
@@ -1774,31 +1818,12 @@ function initializeStoreReqDomainsSelect() {
             var parsed = JSON.parse(data);
             // console.log(parsed);
 
-            // var domain_id = false;
-            // var user_id = false;
-
-            // if ($("#edit_userid").val() != '') {
-            //     user_id = $("#edit_userid").val();
-            // }
-
             $.each(parsed, function(key, value) {
                 // console.log("key: ", key, "value: ", value);
                 $("#domainid").append(
                     "<option value=" + value.id +">" + value.name +"</option>"
                 );
-
-                // if (parseInt(user_id) === parseInt(value.id)) {
-                //     domain_id = value.domain;
-                // }
             });
-
-            // if (!domain_id || !user_id) {
-            //     domain_id = parsed[0].domain;
-            //     user_id = parsed[0].id;
-            // }
-            
-            // // Set the first element as selected
-            // $("#userid").val(user_id);   // $("#vendorid").val(parsed[Object.keys(parsed)[0]].id);
 
             // Set the first element as selected
             var domain_id = parsed[0].id;
@@ -1831,13 +1856,6 @@ function initializeStoreReqSubDomsSelect(domainId) {
             var parsed = JSON.parse(data);
             // console.log(parsed);
 
-            // var subdom_id = false;
-
-            // if ($("#edit_subdomid").val() != '') {
-            //     subdom_id = $("#edit_subdomid").val();
-            //     //alert("subdom_id found: " + subdom_id);
-            // }
-
             $.each(parsed, function(key, value) {
                 // console.log("key: ", key, "value: ", value.status_label);
                 $("#subdomid").append(
@@ -1845,16 +1863,12 @@ function initializeStoreReqSubDomsSelect(domainId) {
                 );
             });
 
-            // if (!subdom_id) {
-            //     // Set the first element as selected
-            //     $("#subdomid").val(parsed[0].id);
-            // }
-            // else {
-            //     $("#subdomid").val(subdom_id); 
-            // }
-
             // Set the first element as selected
             $("#subdomid").val(parsed[0].id);
+
+            // Set the organization name
+            $("#preq_customer").val(parsed[0].org_name);
+            $("#preq_customer_id").val(parsed[0].org_id);
         }
     })
 }
@@ -1887,9 +1901,9 @@ function addStoreRequisitionRow() {
         url: baseUrlMain+'/core/ajax/main/store_reqs.php', 
         method: "POST",
         data: { get_new_requisition_item: 1 },
-        success: function(rsp) {
-            //alert(rsp);
-            $("#store_requisition_item").append(rsp);
+        success: function(req_item) {
+            //alert(req_item);
+            $("#store_requisition_item").append(req_item);
             // set the number fields (auto-incrementing)
             var n = 0;
             $(".number").each(function() {
@@ -2737,7 +2751,7 @@ function receiveCustomerPorderItems(form_data) {
  *
  */
 
-// Uploda functionality
+// Upload functionality
 function uploadVProductsCsv(form_data) {
 
     // validation: has a csv file been selected?
@@ -2999,9 +3013,42 @@ function importVProductCsv() {
     });
 }
 
-// Manage the Unknown Vendor Product Modal
+// Clear the Unknown Vendor Product Modal
+function clearUknVproductModal() {
+    
+    // Reset the form
+    $("#edit_vproduct_form").trigger("reset");
 
-function getVendorProductById(vprodId) {
+    $('#productname_selection').val('');
+    $('#productname_selection_id').val('');
+    $('#productdescr_selection').val('');
+    $('#updated_vproduct_productname').html('NULL');
+    $('#updated_vproduct_description').html('NULL');
+
+    $('#brand_selection').val('');
+    $('#brand_selection_id').val('');
+    $('#updated_vproduct_brand').html('NULL');
+
+    $('#category_selection').val('');
+    $('#category_selection_id').val('');
+    $('#updated_vproduct_category').html('NULL');
+
+    $('#pkgunit_selection').val('');
+    $('#pkgunit_selection_id').val('');
+    $('#updated_vproduct_pkgunit').html('NULL');
+
+    $('#pkglot_selection').val('');
+    $('#pkglot_selection_id').val('');
+    $('#updated_vproduct_pkglot').html('NULL');
+
+    $('#updated_vproduct_psku').html('NULL');
+
+    // Disable the submit button
+    $("#editUKNvproductModal .update_vproduct_btn").prop('disabled', true);
+}
+        
+// Manage the Unknown Vendor Product Modal
+function getVendorProductByIdandPopulate(vprodId) {
     // alert("Vendor Product Id: " + vprodId);
 
     $.ajax({
@@ -3015,7 +3062,7 @@ function getVendorProductById(vprodId) {
             // console.log(response);
 
             var vproduct_id = response.id;
-            //var vproduct_name = response.name;
+            var vproduct_name = 'NULL';
             var vproduct_brand = response.brand;
             var vproduct_category = response.category;
             var vproduct_description = response.product_name_descr;
@@ -3023,32 +3070,67 @@ function getVendorProductById(vprodId) {
             var vproduct_lot = response.lot;
             var vproduct_psku = response.provisional_sku;
 
-            //isProductNameValid(vproduct_name);
+            isProductNameValid(vproduct_name);
+            // isProductShortDescrValid(vproduct_description);
             isBrandNameValid(vproduct_brand);
             isCategoryNameValid(vproduct_category);
-            isProductShortDescrValid(vproduct_description);
             isPackageUnitValid(vproduct_unit);
             isPackageLotValid(vproduct_lot);
+            isSkuValid(vproduct_psku, function(){});
 
-            $("#edit_vproduct_form #vproduct_id").html(vproduct_id);
+            $("#edit_vproduct_form #vproduct_id").val(vproduct_id);
             // $("#edit_vproduct_form #vproduct_name").val(vproduct_name);
+            $("#productdescr_selection").val(vproduct_description);
 
             $("#edit_vproduct_form #vproduct_brand").html(vproduct_brand);
             $("#vproduct_brand_current").html(vproduct_brand);
+            $("#brand_selection").val(vproduct_brand);
 
             $("#edit_vproduct_form #vproduct_category").html(vproduct_category);
             $("#vproduct_category_current").html(vproduct_category);
+            $("#category_selection").val(vproduct_category);
 
             $("#edit_vproduct_form #vproduct_description").html(vproduct_description);
             $("#vproduct_description_input").val(vproduct_description);
 
             $("#edit_vproduct_form #vproduct_pkgunit").html(vproduct_unit);
             $("#vproduct_pkgunit_current").html(vproduct_unit);
+            $("#pkgunit_selection").val(vproduct_unit);
 
             $("#edit_vproduct_form #vproduct_pkglot").html(vproduct_lot);
             $("#vproduct_pkglot_current").html(vproduct_lot);
+            $("#pkglot_selection").val(vproduct_lot);
 
             $("#edit_vproduct_form #vproduct_psku").html(vproduct_psku);
+            $("#edit_vproduct_form #vproduct_prov_sku").val(vproduct_psku);
+            $("#edit_vproduct_form #vproduct_final_sku").val('NULL');
+
+            isVendorProductValid();
+        }
+    });
+}
+
+function isProductNameValid(productName) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isProductNameValid": 1, "productname": productName},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_productname_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_productname_valid").removeClass('badge-danger').addClass('badge-success');
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_productname_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_productname_valid").removeClass('badge-success').addClass('badge-danger');
+            }
         }
     });
 }
@@ -3063,8 +3145,8 @@ function isBrandNameValid(brandName) {
         success: function(response) {
             // alert(response);
 
-            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
-            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
             if (response == 1) {
                 $("#edit_vproduct_form #vproduct_brand_valid").html(validHtml);
@@ -3089,8 +3171,8 @@ function isCategoryNameValid(categoryName) {
         success: function(response) {
             // alert(response);
 
-            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
-            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
             if (response == 1) {
                 $("#edit_vproduct_form #vproduct_category_valid").html(validHtml);
@@ -3113,8 +3195,8 @@ function isProductShortDescrValid(description) {
         success: function(response) {
             // alert(response);
 
-            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
-            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
             if (response == 1) {
                 $("#edit_vproduct_form #vproduct_description_valid").html(validHtml);
@@ -3137,8 +3219,8 @@ function isPackageUnitValid(unit) {
         success: function(response) {
             // alert(response);
 
-            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
-            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
             if (response == 1) {
                 $("#edit_vproduct_form #vproduct_pkgunit_valid").html(validHtml);
@@ -3161,8 +3243,8 @@ function isPackageLotValid(lot) {
         success: function(response) {
             // alert(response);
 
-            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>Invalid';
-            var validHtml = '<i class="fa fa-check">&nbsp;</i>Valid';
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
             if (response == 1) {
                 $("#edit_vproduct_form #vproduct_pkglot_valid").html(validHtml);
@@ -3174,6 +3256,252 @@ function isPackageLotValid(lot) {
             }
         }
     });
+}
+
+function isSkuFormatValid(sku, callback) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isSkuFormatValid": 1, "sku": sku},
+        type: 'text',
+        success: function(response) {
+            // alert("isSkuFormatValid: " + response);
+            callback(response);
+        }
+    });    
+}
+
+function isSkuValid(sku, callback) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isSkuValid": 1, "sku": sku},
+        type: 'text',
+        success: function(response) {
+            // alert("isSkuValid: " + response);
+            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
+            
+            if (response == 1) {
+                $("#edit_vproduct_form #vproduct_psku_valid").html(validHtml);
+                $("#edit_vproduct_form #vproduct_psku_valid").removeClass('badge-danger').addClass('badge-success');
+                callback(true);
+            }
+            else {
+                $("#edit_vproduct_form #vproduct_psku_valid").html(invalidHtml);
+                $("#edit_vproduct_form #vproduct_psku_valid").removeClass('badge-success').addClass('badge-danger'); 
+                callback(false);
+            }
+        }
+    });  
+}
+
+function isVendorProductValid() {
+
+    var productName     = $('#productname_selection').val();
+    var brandName       = $('#brand_selection').val();
+    var categoryName    = $('#category_selection').val();
+    var pkgunitName     = $('#pkgunit_selection').val();
+    var pkglotName      = $('#pkglot_selection').val();
+    var fsku             = $('#vproduct_final_sku').val(); 
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { 
+            "isVendorProductValid": 1, 
+            "productname": productName,
+            "brandname": brandName,
+            "categoryname": categoryName,
+            "pkgunitname": pkgunitName,
+            "pkglotname": pkglotName,
+            "sku": fsku
+        },
+        type: 'text',
+        success: function(response) {
+            // alert("RESPONSE: " + response);
+            if (response == 1) {
+                isSkuValid(fsku, function(valid) {
+                    // Create a new SKU if the found SKU is not valid
+                    if (!valid) {
+                        // Calculate a final SKU
+                        var form_data = {
+                            productname: productName,
+                            brandname: brandName,
+                            categoryname: categoryName,
+                            pkgunitname: pkgunitName,
+                            pkglotname: pkglotName,
+                        };
+
+                        getNextSKU(form_data, function(sku) {
+                            // Validate final SKU
+                            isSkuFormatValid(sku, function(valid) {
+
+                                var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+                                var validHtml = '<i class="fa fa-check">&nbsp;</i>';
+
+                                if (valid) {
+                                    // alert("Final SKU: " + sku);
+                                    $('#vproduct_final_sku').val(sku);
+                                    $('#updated_vproduct_psku').html(sku);
+                                    $("#edit_vproduct_form #vproduct_psku_valid").html(validHtml);
+                                    $("#edit_vproduct_form #vproduct_psku_valid").removeClass('badge-danger').addClass('badge-success');
+                                }
+                                else {
+                                    $("#edit_vproduct_form #vproduct_psku_valid").html(invalidHtml);
+                                    $("#edit_vproduct_form #vproduct_psku_valid").removeClass('badge-success').addClass('badge-danger'); 
+                                }
+                            });                            
+                        });      
+                    }
+                    else {
+                        // alert("Found Valid SKU: " + fsku);
+                    }
+
+                    // Enable the submit button
+                    $("#editUKNvproductModal .update_vproduct_btn").prop('disabled', false);
+                });   
+            }
+            else {
+                // Do nothing for now.
+            }
+        }
+    });
+}
+
+
+function onProductNameInputChange() {
+    var productName = $('#productname_selection').val();
+    // alert("change!!! " + productName);
+    $('#updated_vproduct_productname').html(productName);
+    onProductDescrInputChange();
+
+    // Recalculate validity
+    isProductNameValid(productName);
+    isVendorProductValid();
+}
+
+function onProductDescrInputChange() {
+    var productDescr = $('#productdescr_selection').val();
+    // alert("change!!! " + productDescr);
+    $('#updated_vproduct_description').html(productDescr);
+}
+
+function onBrandInputChange() {
+    var brandName = $('#brand_selection').val();
+    // alert("change!!! " + $('#brand_selection').val());
+    $('#updated_vproduct_brand').html(brandName);
+
+    // Recalculate validity
+    isBrandNameValid(brandName);
+    isVendorProductValid();
+}
+
+function onCategoryInputChange() {
+    var categoryName = $('#category_selection').val();
+    // alert("change!!! " + $('#category_selection').val());
+    $('#updated_vproduct_category').html(categoryName);
+
+    // Recalculate validity
+    isCategoryNameValid(categoryName);
+    isVendorProductValid();
+}
+
+function onPkgUnitInputChange() {
+    var pkgunitName = $('#pkgunit_selection').val();
+    // alert("change!!! " + $('#pkgunit_selection').val());    
+    $('#updated_vproduct_pkgunit').html(pkgunitName);
+
+    // Recalculate validity
+    isPackageUnitValid(pkgunitName);
+    isVendorProductValid();
+}
+
+function onPkgLotInputChange() {
+    var pkglotName = $('#pkglot_selection').val();
+    // alert("change!!! " + $('#pkglot_selection').val());
+    $('#updated_vproduct_pkglot').html(pkglotName);
+
+    // Recalculate validity
+    isPackageLotValid(pkglotName);
+    isVendorProductValid();
+}
+
+function updateUnknownVendorProduct(form_data) {
+    console.log(form_data);
+
+    // vproduct_id
+    // productname_selection
+    // productdescr_selection
+    // brand_selection
+    // category_selection
+    // pkgunit_selection
+    // pkglot_selection
+
+    // // validate inputs
+    // if ($("#role_name").val() === "") {
+    //     alert("Please enter the group name");
+    // }
+    // else {
+    //     // add the method name
+    //     form_data.push({ name: 'updateRole', value: 1 });
+
+    //     $.ajax({
+    //         url: baseUrlMain+'/core/ajax/main/roles.php',
+    //         method: 'POST',
+    //         type: 'text',
+    //         data: form_data,
+    //         success: function(response) {
+    //             // alert(response);
+    //             response = JSON.parse(response);
+    //             // alert("response code: " + response.code);
+
+    //             // Reset the form
+    //             // document.getElementById('create_role_form').reset(); // the javascript way
+    //             $("#edit_role_form").trigger("reset");                // the jquery way
+
+    //             // Update any UI element
+    //             //$("#get_category").html(rsp);
+
+    //             // Close the modal
+    //             $('#editRoleModal').modal('toggle'); 
+    //             // $("#modal .close").click();             // worst case scenario
+
+    //             if (response.code !== 0) {
+    //                 // Notification using sweetalert lib
+    //                 swalert_notify("Failed", 'Failed to update role', 'error');
+    //             }
+    //             else {
+    //                 // Prepare and send a notification
+    //                 var status, msg;
+    //                 if (response.code === 0) {    // created
+    //                     status = "success";
+    //                     msg = "Role successfully updated";
+    //                 }
+    //                 else {                  // unknown error
+    //                     status = "warning";
+    //                     msg = "Unknown";
+    //                 }
+
+    //                 // Notification using helper function 'flash' in utilities (redirect)
+    //                 $.ajax({
+    //                     // Send notification
+    //                     url: `${baseUrlMain}/core/security.php`,
+    //                     method: "POST",
+    //                     data: { "send_notification": 1, "status": status, "msg": msg},                
+    //                     success: function(resp) {
+    //                         // alert(resp);
+    //                     }
+    //                 });
+
+    //                 // Do a redirect to list roles
+    //                 window.location = `${baseUrlMain}/main.php?dir=roles&page=list_roles`;
+    //             }
+    //         }
+    //     });
+    // }
 }
 
 

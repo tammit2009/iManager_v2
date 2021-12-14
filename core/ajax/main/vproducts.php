@@ -98,6 +98,15 @@ if (isset($_POST["importVProductCsv"])) {
     echo json_encode($result);
 }
 
+// Is the product name valid
+if (isset($_POST["isProductNameValid"])) {
+    if (isset($_POST["productname"])) {
+        $result = isProductNameValid($_POST["productname"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
 
 // Is the brand name valid
 if (isset($_POST["isBrandNameValid"])) {
@@ -117,16 +126,16 @@ if (isset($_POST["isCategoryNameValid"])) {
     echo 0; exit;
 }
 
-// Is the product short descr valid
-if (isset($_POST["isProductShortDescrValid"])) {
-    if (isset($_POST["productshortdescr"])) {
-        $result = isProductShortDescrValid($_POST["productshortdescr"]); 
-        echo $result; exit;
-    }
-    echo 0; exit;
-}
+// // Is the product short descr valid
+// if (isset($_POST["isProductShortDescrValid"])) {
+//     if (isset($_POST["productshortdescr"])) {
+//         $result = isProductShortDescrValid($_POST["productshortdescr"]); 
+//         echo $result; exit;
+//     }
+//     echo 0; exit;
+// }
 
-// Is the category name valid
+// Is the package unit valid
 if (isset($_POST["isPkgUnitValid"])) {
     if (isset($_POST["pkgunit"])) {
         $result = isPackageUnitValid($_POST["pkgunit"]); 
@@ -135,10 +144,47 @@ if (isset($_POST["isPkgUnitValid"])) {
     echo 0; exit;
 }
 
-// Is the category name valid
+// Is the package lot valid
 if (isset($_POST["isPkgLotValid"])) {
     if (isset($_POST["pkglot"])) {
         $result = isPackageLotValid($_POST["pkglot"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the sku valid
+if (isset($_POST["isSkuFormatValid"])) {
+    if (isset($_POST["sku"])) {
+        $result = isSkuFormatValid($_POST["sku"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the sku exist
+if (isset($_POST["isSkuValid"])) {
+    if (isset($_POST["sku"])) {
+        $result = isSkuValid($_POST["sku"]); 
+        echo $result; exit;
+    }
+    echo 0; exit;
+}
+
+// Is the vendor product valid
+if (isset($_POST["isVendorProductValid"])) {
+    if (isset($_POST["productname"]) && isset($_POST["brandname"]) && isset($_POST["categoryname"]) 
+            && isset($_POST["pkgunitname"]) && isset($_POST["pkglotname"]) /*&& isset($_POST["sku"])*/) {
+
+        $productName = $_POST["productname"];
+        $brandName = $_POST["brandname"];
+        $categoryName = $_POST["categoryname"];
+        $pkgunitName = $_POST["pkgunitname"];
+        $pkglotName = $_POST["pkglotname"];
+        // $sku = $_POST["sku"];
+        
+        $result = isVendorProductValid($productName, $brandName, $categoryName, $pkgunitName, $pkglotName /*, $sku*/ ); 
+
         echo $result; exit;
     }
     echo 0; exit;

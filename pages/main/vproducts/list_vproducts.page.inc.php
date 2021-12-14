@@ -181,8 +181,8 @@
                                     Action
                                 </button>
                                 <div class="dropdown-menu">
-                                    <a class="dropdown-item view_vproduct2" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a>
-                                    <div class="dropdown-divider"></div>
+                                    <!-- <a class="dropdown-item view_vproduct2" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">View</a> -->
+                                    <!-- <div class="dropdown-divider"></div> -->
                                     <!-- <a class="dropdown-item" href="./main.php?dir=vproducts&page=edit_vproduct&amp;id=</?php echo $row['id']; ?>">Edit</a> -->
                                     <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editUKNvproductModal" data-vprodid="<?php echo $row['id']; ?>">Edit</a>
                                     <div class="dropdown-divider"></div>

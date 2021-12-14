@@ -61,7 +61,7 @@ if(isset($_GET['id'])){
                             <td class="text-center"><b><?php echo $row['requisition_no']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['sku']; ?></b></td>
                             <td class="text-left"><b><?php echo $row['description']; ?></b></td>
-                            <td class="text-center"><b>0</td>
+                            <td class="text-center"><b><?php echo $row['stock_avail']; ?></td>
                             <td class="text-center"><b><?php echo $row['requested_qty']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['issued_qty']; ?></b></td>
                             <!-- <td class="text-center">

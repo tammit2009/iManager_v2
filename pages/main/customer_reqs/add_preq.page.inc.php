@@ -22,9 +22,9 @@
 
                         <div class="col-md-4">
                             <div class="form-group">
-                                <input type="hidden" name="preq_customer_id" value="9">
+                                <input type="hidden" name="preq_customer_id" id="preq_customer_id">
                                 <label for="">Customer</label>
-                                <input type="text" name="preq_customer" id="preq_customer" class="form-control form-control-sm" value="H1Plus Hotels Ltd">
+                                <input type="text" name="preq_customer" id="preq_customer" class="form-control form-control-sm">
                             </div>
                         </div>
 
@@ -124,100 +124,6 @@
                         </div>
 
                     </div>
-
-                    <!-- <div class="row">
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Total Amount</label>
-                                <input type="text" name="preq_total_amt" id="preq_total_amt" class="form-control form-control-sm" required readonly>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Paid Amount</label>
-                                <input type="text" name="preq_paid_amount" id="preq_paid_amount" class="form-control form-control-sm" required>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">VAT (7.5%)</label>
-                                <input type="text" name="preq_vat" id="preq_vat" class="form-control form-control-sm" required readonly>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Shipping Cost</label>
-                                <input type="text" name="preq_shipping" id="preq_shipping" class="form-control form-control-sm">
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Due Amount</label>
-                                <input type="text" name="preq_due_amount" id="preq_due_amount" class="form-control form-control-sm" required readonly>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Discount</label>
-                                <input type="text" name="preq_discount" id="preq_discount" class="form-control form-control-sm" required>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Shipping Method</label>
-                                <select type="text" name="preq_shipping_method" class="form-control form-control-sm" id="preq_shipping_method" required>
-                                    <option>Variable</option>
-                                    <option>Free</option>
-                                    <option>Flat Rate</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Payment Method</label>
-                                </!-- <input type="text" name="order_payment_method" id="order_payment_method" class="form-control form-control-sm"> --/>
-                                <select type="text" name="preq_payment_method" class="form-control form-control-sm" id="preq_payment_method" required>
-                                    <option>Cash</option>
-                                    <option>Card</option>
-                                    <option>Draft</option>
-                                    <option>Cheque</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-8">
-                            <div class="form-group">
-                                <label for="">Grand Total</label>
-                                <input type="text" name="preq_grand_total" id="preq_grand_total" class="form-control form-control-sm" required readonly>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="">Payment Status</label>
-                                <input type="text" name="preq_payment_status" id="preq_payment_status" class="form-control form-control-sm">
-                            </div>
-                        </div>
-
-                    </div> -->
-
-                    <!-- <div class="row">
-                        <div class="col-md-8 pt-2">
-                            <label for="preq_notes">Purchase Requisition Notes</label>
-                            <textarea class="form-control" name="preq_notes" id="preq_notes" rows="5" required></textarea>
-                        </div>
-                        <div class="col-md-4 pt-2">
-
-                        </div>
-                    </div> -->
 
                     <hr>
 

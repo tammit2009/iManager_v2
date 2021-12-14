@@ -25,3 +25,25 @@ if (isset($_POST["createSKU"])) {
 
     echo json_encode($result);
 }
+
+// Get Next Valid SKU
+if (isset($_POST["getNextSKU"])) {
+    // print_r($_POST);
+
+    $productName = $_POST['productname'];
+    $brandName = $_POST['brandname'];
+    $categoryName = $_POST['categoryname'];
+    $pkgunitName = $_POST['pkgunitname'];
+    $pkglotName = $_POST['pkglotname'];
+
+    $sku = getNextSKU($productName, $brandName, $categoryName, $pkgunitName, $pkglotName);
+
+    if ($sku !== 'NULL') {
+        $result = array( 'code' => 0, 'message' => 'SKU successfully created.', 'sku' => $sku );
+    }
+    else {
+        $result = array( 'code' => 1, 'message' => 'Failed to connect to database.' );
+    }
+
+    echo json_encode($result);
+}

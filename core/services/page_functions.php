@@ -1561,7 +1561,7 @@ function fetch_all_products() {
     $opr = new DBOperation();       //Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT products.product_name, products.sku, products.unit, 
+        $sql = "SELECT products.id, products.product_name, products.sku, products.unit, 
                 products.lot, products.per_lot, products.features, products.attributes, 
                 products.brand_id, products.category_id,
                 products.short_descr, products.unit_price, products.keep_stock,
@@ -1683,7 +1683,12 @@ function fetch_storereq_lines_by_id($storeRequisitionId) {
     $opr = new DBOperation();       // Connect to database
     if ($opr->dbConnected()) {
 
-        $sql = "SELECT store_reqs.requisition_no, srli.description, srli.sku, srli.requested_qty, srli.issued_qty, 
+        $sql = "SELECT store_reqs.requisition_no, srli.description, 
+                srli.sku, 
+                (SELECT curr_stock_level FROM stock WHERE srli.sku = stock.sku 
+                    AND store_reqs.domain_id = stock.domain_id 
+                    AND store_reqs.sub_dom_id = stock.sub_dom_id) as stock_avail,
+                srli.requested_qty, srli.issued_qty, 
                 store_reqs.brief_description, store_reqs.request_date, store_reqs.status 
                 FROM store_req_line_items as srli INNER JOIN store_reqs 
                 ON srli.requisition_id = store_reqs.id WHERE store_reqs.id=?";

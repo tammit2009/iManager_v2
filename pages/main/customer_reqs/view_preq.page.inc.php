@@ -28,10 +28,12 @@ if(isset($_GET['id'])){
                     </div>
                     <div class="col-md-6 d-flex align-items-center justify-content-end">
                         <h3 class="p-2 pt-3">#<?= $customer_preq['preq_no']; ?></h3>
+                        <?php if ($customer_preq['status'] == '2') { ?> 
                         <a  class="btn btn-secondary ml-2" 
                             href="./main.php?dir=customer_pos&page=add_porder&amp;prid=<?php echo $_GET['id']; ?>&amp;prno=<?php echo $customer_preq['preq_no']; ?>">                            
                             Create Order
                         </a>
+                        <?php } ?>
                     </div>
                 </div>
             </div>

@@ -796,7 +796,11 @@ function getSubDomsByDomainId2($domainId) {
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
 
-        $res = $opr->sqlSelect('SELECT id, name, parent_domain_id FROM `subdomains` 
+        $res = $opr->sqlSelect('SELECT id, name, 
+                                parent_domain_id, 
+                                (SELECT name FROM organizations WHERE parent_domain_id = organizations.domain_id) as org_name,
+                                (SELECT id FROM organizations WHERE parent_domain_id = organizations.domain_id) as org_id
+                                FROM `subdomains` 
                                 WHERE subdomains.parent_domain_id=?', 'i', $domainId);
 
         if ($res && $res->num_rows > 0) {
@@ -1092,6 +1096,90 @@ function createSKU($brand, $category, $package, $number) {
 
 }
 
+function getNextSKU($productName, $brandName, $categoryName, $pkgunitName, $pkglotName) {
+
+    // echo "$productName: "   . $productName ."\n";
+    // echo "$brandName: "     . $brandName ."\n";
+    // echo "$categoryName: "  . $categoryName ."\n";
+    // echo "$pkgunitName: "   . $pkgunitName ."\n";
+    // echo "$pkglotName: "    . $pkglotName ."\n";
+
+    $sku = "";
+    $brand_data = array();
+    $category_data = array();
+    $pkgunit_data = array();
+    $pkglot_data = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Get the catalog symbol for brand
+        $res = $opr->sqlSelect('SELECT * FROM brands WHERE name=?', 's', $brandName);
+        if ($res && $res->num_rows === 1) {
+            $brand_data = $res->fetch_assoc();
+            $res->free_result();
+        }
+
+        // Get the catalog symbol for category
+        $res = $opr->sqlSelect('SELECT * FROM categories WHERE name=?', 's', $categoryName);
+        if ($res && $res->num_rows === 1) {
+            $category_data = $res->fetch_assoc();
+            $res->free_result();
+        }
+
+        // Get the catalog symbol for packaging unit
+        $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE parent="products" 
+                                AND type="packaging_unit" AND label=?', 's', $pkgunitName);
+        if ($res && $res->num_rows === 1) {
+            $pkgunit_data = $res->fetch_assoc();
+            $res->free_result();
+        }
+
+        // Get the catalog symbol for packaging lot
+        $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE parent="products" 
+                AND type="packaging_lot" AND label=?', 's', $pkglotName);
+        if ($res && $res->num_rows === 1) {
+            $pkglot_data = $res->fetch_assoc();
+            $res->free_result();
+        }
+
+        $sku = $brand_data['catalog_symbol'];
+        $sku .= $category_data['catalog_symbol'];
+        $sku .= $pkgunit_data['catalog_symbol'];
+        $sku .= $pkglot_data['catalog_symbol'];
+
+        $pattern = $sku;
+
+        $skus = getAllSkusMatchingPattern($pattern);
+        if (!empty($skus)) {
+            // print_r($skus);
+            // Get the max value
+            $max_sku = max($skus);
+            // Strip the pattern prefix
+            $max_sku = substr($max_sku, strlen($pattern));
+            // Cast to integer value
+            $max_sku = (int)$max_sku;
+            // Add 1
+            $max_sku += 1;
+            // Prepend Prefix
+            $max_sku = $pattern . strval($max_sku);
+            $sku .= $max_sku;
+        }
+        else {
+            $sku .= '001';
+        }
+
+        return $sku;
+        $opr->close();
+    }
+    else {
+        return 'NULL';      // Failed to connect to database
+    }       
+
+    // return "KNOWN6789";
+}
+
 /*
  * Manage Vendors
  *
@@ -1324,6 +1412,36 @@ function getVendorProductById($vprodId) {
     }
 }
 
+function isProductNameValid($productName) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM products WHERE product_name=?', 's', $productName);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+// function isProductShortDescrValid($descr) {
+//     //Connect to database
+//     $opr = new DBOperation();
+//     if ($opr->dbConnected()) {
+//         $res = $opr->sqlSelect('SELECT * FROM products WHERE short_descr=?', 's', $descr);
+//         if ($res && $res->num_rows > 0) {
+//             //$vproduct = $res->fetch_assoc();
+//             return 1;
+//             $res->free_result();
+//         }
+//         $opr->close();
+//     }
+//     return 0;
+// }
+
 function isBrandNameValid($brandName) {
     //Connect to database
     $opr = new DBOperation();
@@ -1344,21 +1462,6 @@ function isCategoryNameValid($categoryName) {
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
         $res = $opr->sqlSelect('SELECT * FROM categories WHERE name=?', 's', $categoryName);
-        if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
-            $res->free_result();
-        }
-        $opr->close();
-    }
-    return 0;
-}
-
-function isProductShortDescrValid($descr) {
-    //Connect to database
-    $opr = new DBOperation();
-    if ($opr->dbConnected()) {
-        $res = $opr->sqlSelect('SELECT * FROM products WHERE short_descr=?', 's', $descr);
         if ($res && $res->num_rows > 0) {
             //$vproduct = $res->fetch_assoc();
             return 1;
@@ -1399,6 +1502,84 @@ function isPackageLotValid($pkglot) {
         $opr->close();
     }
     return 0;
+}
+
+function isSkuFormatValid($sku) {
+
+    $valid = true;
+
+    // Split the SKU into its parts
+    $brand_symbol = substr($sku, 0, 3);         // echo "brand_symbol: ". $brand_symbol;
+    $category_symbol = substr($sku, 3, 2);      // echo "category_symbol: ". $category_symbol;
+    $pkgunit_symbol = substr($sku, 5, 1);       // echo "pkgunit_symbol: ". $pkgunit_symbol;
+    $pkglot_symbol = substr($sku, 6, 1);        // echo "pkglot_symbol: ". $pkglot_symbol;
+
+    // Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // Get the catalog symbol for brand
+        $res = $opr->sqlSelect('SELECT catalog_symbol FROM brands WHERE catalog_symbol=?', 's', $brand_symbol);
+        if ($res && $res->num_rows !== 1) {
+            $valid = $valid & false;
+            $res->free_result();
+        }
+
+        // Get the catalog symbol for category
+        $res = $opr->sqlSelect('SELECT catalog_symbol FROM categories WHERE catalog_symbol=?', 's', $category_symbol);
+        if ($res && $res->num_rows !== 1) {
+            $valid = $valid & false;
+            $res->free_result();
+        }
+
+        // Get the catalog symbol for packaging unit
+        $res = $opr->sqlSelect('SELECT catalog_symbol FROM static_codes WHERE parent="products" 
+                                AND type="packaging_unit" AND catalog_symbol=?', 's', $pkgunit_symbol);
+        if ($res && $res->num_rows !== 1) {
+            $valid = $valid & false;
+            $res->free_result();
+        }
+
+        // Get the catalog symbol for packaging lot
+        $res = $opr->sqlSelect('SELECT catalog_symbol FROM static_codes WHERE parent="products" 
+                                AND type="packaging_lot" AND catalog_symbol=?', 's', $pkglot_symbol);
+        if ($res && $res->num_rows !== 1) {
+            $valid = $valid & false;
+            $res->free_result();
+        }
+
+        $opr->close();
+    }
+
+    return $valid ? 1 : 0;
+}
+
+function isSkuValid($sku) {
+    // Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT sku FROM products WHERE sku=?', 's', $sku);
+        if ($res && $res->num_rows > 0) {
+            //$vproduct = $res->fetch_assoc();
+            return 1;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    return 0;
+}
+
+function isVendorProductValid($productName, $brandName, $categoryName, $pkgunitName, $pkglotName) {
+
+    $valid = true;
+
+    $valid = $valid & isProductNameValid($productName);
+    $valid = $valid & isBrandNameValid($brandName);
+    $valid = $valid & isCategoryNameValid($categoryName);
+    $valid = $valid & isPackageUnitValid($pkgunitName);
+    $valid = $valid & isPackageLotValid($pkglotName);
+
+    return $valid;
 }
 
 

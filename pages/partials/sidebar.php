@@ -28,7 +28,14 @@
         </div>
     </li>
 
-    <hr class="sidebar-divider">
+    <!-- Home -->
+    <li class="nav-item">
+        <a class="nav-link" href="./home.php?page=index">
+            <i class="fas fa-fw fa-store"></i>
+            <span>Home</span></a>
+    </li>
+
+    <!-- <hr class="sidebar-divider"> -->
 
     <!-- Projects -->
     <li class="nav-item">
