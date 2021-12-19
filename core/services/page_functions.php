@@ -1451,6 +1451,40 @@ function fetch_all_brands() {
     }  
 }
 
+function fetch_all_brands2() {
+    $brands = array();
+
+    $userDomain = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id as brand_id, name, created_on, catalog_symbol
+                FROM brands";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain='" . $userDomain ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $brands[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $brands;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
 function fetchBrandById($brandId) {
     $brand = array();
 
@@ -1496,6 +1530,40 @@ function fetch_all_categories() {
         $sql = "SELECT categories.id as category_id, categories.name, categories.parent_id, categories.description, catalog_symbol, 
                 categories.created_on, users.name as created_by FROM categories INNER JOIN users 
                 ON categories.created_by = users.id";
+
+        // // Restrict view of all users only to admins
+        // if (!isRoleInGroup('admin', $userGroupId)) {
+        //     $sql .= " WHERE `stock`.domain='" . $userDomain ."'";
+        // }
+
+        $results = $opr->sqlSelect($sql);
+
+        if ($results && $results->num_rows > 0) {
+            while ($row = $results->fetch_assoc()) {
+                $categories[] = $row;
+            }
+            $results->free_result();
+        }
+        $opr->close();
+
+        return $categories;
+    }
+    else {
+        return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetch_all_categories2() {
+    $categories = array();
+
+    $userDomain = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+
+    $opr = new DBOperation();       //Connect to database
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id as category_id, name, parent_id, description, catalog_symbol, 
+                created_on, created_by FROM categories";
 
         // // Restrict view of all users only to admins
         // if (!isRoleInGroup('admin', $userGroupId)) {
@@ -1588,6 +1656,33 @@ function fetch_all_products() {
     }
     else {
         return -1;                  // Failed to connect to database
+    }  
+}
+
+function fetchProductById($productId) {
+    $product = [];	
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT * FROM products WHERE id=?";
+
+        $res = $opr->sqlSelect($sql, 'i', $productId);
+
+        if($res && $res->num_rows === 1) {
+            $product = $res->fetch_assoc();
+            $res->free_result();
+
+            return $product;          
+        }
+        else {
+            return -2;  // Vendor product not found
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
     }  
 }
 
@@ -2076,7 +2171,7 @@ function fetch_all_vendor_products() {
         $sql = "SELECT vp.id, vp.domain_id, vp.sub_dom_id, vp.vendor_id, 
                 (SELECT name FROM organizations WHERE organizations.id = vp.vendor_id) as vendor,
                 vp.brand, vp.category,
-                vp.provisional_sku, vp.product_name_descr, vp.feature, vp.unit, vp.lot, 
+                vp.provisional_sku, vp.product_name_descr, vp.features, vp.unit, vp.lot, 
                 vp.qty_per_offer, vp.offer_price, vp.offer_date, vp.active,
                 vp.created_on, vp.created_by,
                 (SELECT name FROM users WHERE vp.created_by = users.id) as creator 
@@ -2108,6 +2203,46 @@ function fetch_all_vendor_products() {
     }  
 }
 
+function fetchVendorProductById($vproductId) {
+    $vproduct = [];	
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT id, 
+                domain_id, 
+                (SELECT name FROM domains WHERE domain_id = domains.id) as domain_name,
+                sub_dom_id, 
+                (SELECT name FROM subdomains WHERE sub_dom_id = subdomains.id) as subdom_name,
+                vendor_id, 
+                (SELECT name FROM organizations WHERE vendor_id = organizations.id) as vendor_name,
+                brand, category, tags, 
+                provisional_sku, product_name_descr, features, unit, lot, qty_per_offer, 
+                offer_price, offer_date, active, main_pix, gallery_pix_id, attributes,
+                serial_no, ipc, batch_no, produced_on, expires_on, created_on, 
+                created_by, 
+                (SELECT name FROM users WHERE created_by = users.id) as creator
+                FROM vendors_products WHERE id=?";
+
+        $res = $opr->sqlSelect($sql, 'i', $vproductId);
+
+        if($res && $res->num_rows === 1) {
+            $vproduct = $res->fetch_assoc();
+            $res->free_result();
+
+            return $vproduct;          
+        }
+        else {
+            return -2;  // Vendor product not found
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }  
+}
+
 function fetch_unknown_vendor_products() {
     $vproducts = array();
 
@@ -2125,7 +2260,7 @@ function fetch_unknown_vendor_products() {
         $sql = "SELECT vp.id, vp.domain_id, vp.sub_dom_id, vp.vendor_id, 
                 (SELECT name FROM organizations WHERE organizations.id = vp.vendor_id) as vendor,
                 vp.brand, vp.category,
-                vp.provisional_sku, vp.product_name_descr, vp.feature, vp.unit, vp.lot, 
+                vp.provisional_sku, vp.product_name_descr, vp.features, vp.unit, vp.lot, 
                 vp.qty_per_offer, vp.offer_price, vp.offer_date, vp.active,
                 vp.created_on, vp.created_by,
                 (SELECT name FROM users WHERE vp.created_by = users.id) as creator 
@@ -2178,7 +2313,7 @@ function fetch_all_vendor_products_join_products() {
         $sql = "SELECT vp.id, products.product_name, products.unit as product_unit, 
                 vp.domain_id, vp.sub_dom_id, vp.vendor_id, 
                 (SELECT name FROM organizations WHERE organizations.id = vp.vendor_id) as vendor,
-                vp.brand, vp.category, vp.provisional_sku, vp.product_name_descr, vp.feature, 
+                vp.brand, vp.category, vp.provisional_sku, vp.product_name_descr, vp.features, 
                 vp.unit, vp.lot, vp.qty_per_offer, vp.offer_price, vp.offer_date, vp.active
                 FROM vendors_products as vp INNER JOIN products
                 ON vp.provisional_sku = products.sku";

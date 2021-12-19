@@ -89,6 +89,8 @@
         </a>
         <div id="collapseInventory" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-custom1 py-2 collapse-inner rounded">
+                <a class="collapse-item" href="./main.php?dir=stock&page=stock_adjust">Stock Adjustment</a>
+                <a class="collapse-item" href="./main.php?dir=stock&page=stock_transfer">Stock Transfer</a>
                 <a class="collapse-item" href="./main.php?dir=stats&page=stock_txns">Stock Transactions</a>
                 <a class="collapse-item" href="./main.php?dir=stock&page=list_stock">Stock List</a>
                 <a class="collapse-item" href="./main.php?dir=stock&page=sku_tool">SKU Tool</a>
@@ -142,6 +144,8 @@
         </a>
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-custom1 py-2 collapse-inner rounded">
+                <a class="collapse-item" href="./main.php?dir=customer_pos&page=track_order">Order Track</a>
+                <a class="collapse-item" href="./main.php?dir=customer_pos&page=add_iorder_bc">Barcode Demo Order</a>
                 <a class="collapse-item" href="./main.php?dir=customer_pos&page=list_iorders">Inline Order</a>
                 <a class="collapse-item" href="./main.php?dir=customer_pos&page=list_porders">Purchase Orders</a>
                 <a class="collapse-item" href="./main.php?dir=customer_reqs&page=list_preqs">Purchase Requisitions</a>

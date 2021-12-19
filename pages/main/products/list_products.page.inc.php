@@ -92,7 +92,7 @@ $(document).ready(function(){
     // View Product
     $('.view_product').click(function(){
         // pull in the html view page with uni_modal
-		uni_modal("<i class='fa fa-id-card'></i> User Details", "main/users/inc/view_user.php?id=" + $(this).attr('data-id'));
+		uni_modal("<i class='fa fa-id-card'></i> Product Details", "main/products/inc/view_product.php?id=" + $(this).attr('data-id'));
 	});
 
     // Delete Product

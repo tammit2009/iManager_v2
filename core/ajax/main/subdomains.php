@@ -24,6 +24,17 @@ if (isset($_POST["get_subdoms_by_domain"])) {
     }
 }
 
+// Fetch Subdomains By domainId
+if (isset($_POST["get_vendor_subdoms_by_domain"])) {
+    if (isset($_POST["domainid"])) {
+        $result = getVendorSubDomsByDomainId($_POST['domainid']);  
+        echo json_encode($result);
+    }
+    else {
+        echo json_encode(array());  // return empty
+    }
+}
+
 // Add a Subdomain to a Domain
 if (isset($_POST["addSubDomToDomain"])) {
     

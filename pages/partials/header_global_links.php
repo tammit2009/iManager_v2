@@ -42,3 +42,6 @@
         }
     </style>
 
+    <!-- barcode related -->
+    <script src="./assets/vendor/picqer/js/utils/html2canvas.js"></script>
+    <script src="./assets/vendor/picqer/js/utils/dom-to-image.js"></script>

@@ -7,6 +7,11 @@ if (isset($_POST["get_all_domains"])) {
     echo json_encode(getAllDomains());
 }
 
+// Get all Vendor Domains
+if (isset($_POST["get_all_vendor_domains"])) {
+    echo json_encode(getAllVendorDomains());
+}
+
 // Get Domain By Id
 if (isset($_POST["get_domain_by_id"]) && isset($_POST["domainid"])) {
     echo json_encode(getDomainById($_POST["domainid"]));

@@ -649,6 +649,48 @@ function getAllDomains() {
     }
 }
 
+function getAllVendorDomains() {
+    $domains = array();
+
+    $userId = $_SESSION['userid'];
+    $userDomainName = isset($_SESSION['domain']) ? $_SESSION['domain'] : 'default';
+    $userGroupId = isset($_SESSION['groupid']) ? $_SESSION['groupid'] : 1;
+    $userDomain = getDomainByName($userDomainName);
+    $userSubDoms = getSubDomsByUserId($userId);
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT domains.id, domains.name, domains.description, org.name as vendor_name, org.id as vendor_id
+                FROM domains INNER JOIN organizations as org
+                ON domains.id = org.domain_id 
+                WHERE org.type = 'vendor' ";
+        
+        // Restrict view of all users only to admins
+        if (!isRoleInGroup('admin', $userGroupId)) {
+            // Restrict view only to user's provisioned subdomains
+            $sql .= " AND id='" . $userDomain['id'] ."'";
+            // $sql .= " AND sub_dom_id IN ('". implode(',', $userSubDoms) ."')";
+        }
+
+        $res = $opr->sqlSelect($sql);
+
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $domains[] = $row;
+            }
+            $res->free_result();
+        }
+        $opr->close();
+
+        return $domains;
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
 function getDomainById($domainId) {
     $domain = array();
 
@@ -802,6 +844,34 @@ function getSubDomsByDomainId2($domainId) {
                                 (SELECT id FROM organizations WHERE parent_domain_id = organizations.domain_id) as org_id
                                 FROM `subdomains` 
                                 WHERE subdomains.parent_domain_id=?', 'i', $domainId);
+
+        if ($res && $res->num_rows > 0) {
+            while ($row = $res->fetch_assoc()) {
+                $subdoms[] = $row;
+            }
+            return $subdoms;
+            $res->free_result();
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function getVendorSubDomsByDomainId($domainId) {
+    $subdoms = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "SELECT subdom.id, subdom.name, subdom.parent_domain_id, org.name as org_name, org.id as org_id
+                FROM `subdomains` as subdom INNER JOIN `organizations` as org
+                ON subdom.parent_domain_id = org.id
+                WHERE subdom.parent_domain_id=? AND org.type='vendor'";
+
+        $res = $opr->sqlSelect($sql, 'i', $domainId);
 
         if ($res && $res->num_rows > 0) {
             while ($row = $res->fetch_assoc()) {
@@ -1167,7 +1237,7 @@ function getNextSKU($productName, $brandName, $categoryName, $pkgunitName, $pkgl
             $sku .= $max_sku;
         }
         else {
-            $sku .= '001';
+            $sku .= '01';  // 2 digits
         }
 
         return $sku;
@@ -1412,19 +1482,61 @@ function getVendorProductById($vprodId) {
     }
 }
 
+function getPkgUnitById($pkgunitId) {
+    $pkgunit = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE id=?', 'i', $pkgunitId);
+        if ($res && $res->num_rows === 1) {
+            $pkgunit = $res->fetch_assoc();
+            $res->free_result();
+            return $pkgunit;
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
+function getPkgLotById($pkglotId) {
+    $pkglot = array();
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE id=?', 'i', $pkglotId);
+        if ($res && $res->num_rows === 1) {
+            $pkglot = $res->fetch_assoc();
+            $res->free_result();
+            return $pkglot;
+        }
+        $opr->close();
+    }
+    else {
+        return -1;      // Failed to connect to database
+    }
+}
+
 function isProductNameValid($productName) {
+    $product = array();
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
         $res = $opr->sqlSelect('SELECT * FROM products WHERE product_name=?', 's', $productName);
         if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
+            $product = $res->fetch_assoc();
             $res->free_result();
+            return $product;
+        }
+        else {
+            return -2;
         }
         $opr->close();
     }
-    return 0;
+    return -1;
 }
 
 // function isProductShortDescrValid($descr) {
@@ -1443,65 +1555,104 @@ function isProductNameValid($productName) {
 // }
 
 function isBrandNameValid($brandName) {
+    $brand = array();
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
         $res = $opr->sqlSelect('SELECT * FROM brands WHERE name=?', 's', $brandName);
         if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
+            $brand = $res->fetch_assoc();
             $res->free_result();
+            return $brand;
+        }
+        else {
+            return -2;
         }
         $opr->close();
     }
-    return 0;
+    else {
+        return -1;
+    }
 }
 
 function isCategoryNameValid($categoryName) {
+    $category = array();
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
         $res = $opr->sqlSelect('SELECT * FROM categories WHERE name=?', 's', $categoryName);
         if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
+            $category = $res->fetch_assoc();
             $res->free_result();
+            return $category;
+        }
+        else {
+            return -2;
         }
         $opr->close();
     }
-    return 0;
+    return -1;
 }
 
-function isPackageUnitValid($pkgunit) {
+function isPackageUnitValid($pkg_unit) {
+    $pkgunit = array();
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
         $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE parent="products" AND type="packaging_unit"
-                                AND label=?', 's', $pkgunit);
+                                AND label=?', 's', $pkg_unit);
         if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
+            $pkgunit = $res->fetch_assoc();
             $res->free_result();
+            return $pkgunit;
         }
+        else {
+            return -2;
+        }
+
         $opr->close();
     }
-    return 0;
+    return -1;
 }
 
-function isPackageLotValid($pkglot) {
+function isPackageLotValid($pkg_lot) {
+    $pkglot = array();
     //Connect to database
     $opr = new DBOperation();
     if ($opr->dbConnected()) {
         $res = $opr->sqlSelect('SELECT * FROM static_codes WHERE parent="products" AND type="packaging_lot"
-                                AND label=?', 's', $pkglot);
+                                AND label=?', 's', $pkg_lot);
         if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
+            $pkglot = $res->fetch_assoc();
             $res->free_result();
+            return $pkglot;
+        }
+        else {
+            return -2;
+        }
+
+        $opr->close();
+    }
+    return -1;
+}
+
+function isSkuValid($fsku) {
+    $sku = array();
+    // Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+        $res = $opr->sqlSelect('SELECT sku FROM products WHERE sku=?', 's', $fsku);
+        if ($res && $res->num_rows > 0) {
+            $sku = $res->fetch_assoc();
+            $res->free_result();
+            return $sku;
+        }
+        else {
+            return -2;
         }
         $opr->close();
     }
-    return 0;
+    return -1;
 }
 
 function isSkuFormatValid($sku) {
@@ -1554,21 +1705,6 @@ function isSkuFormatValid($sku) {
     return $valid ? 1 : 0;
 }
 
-function isSkuValid($sku) {
-    // Connect to database
-    $opr = new DBOperation();
-    if ($opr->dbConnected()) {
-        $res = $opr->sqlSelect('SELECT sku FROM products WHERE sku=?', 's', $sku);
-        if ($res && $res->num_rows > 0) {
-            //$vproduct = $res->fetch_assoc();
-            return 1;
-            $res->free_result();
-        }
-        $opr->close();
-    }
-    return 0;
-}
-
 function isVendorProductValid($productName, $brandName, $categoryName, $pkgunitName, $pkglotName) {
 
     $valid = true;
@@ -1580,6 +1716,231 @@ function isVendorProductValid($productName, $brandName, $categoryName, $pkgunitN
     $valid = $valid & isPackageLotValid($pkglotName);
 
     return $valid;
+}
+
+function updateVendorProductFromUnknown($vproduct_id, $productname, $product_id, $productdescr,
+            $brandname, $brand_id, $categoryname, $category_id, $pkgunit, $pkgunit_id,
+            $pkglot, $pkglot_id, $vproduct_prov_sku, $vproduct_final_sku) {
+
+    // echo "vproduct_id: " . $vproduct_id ."\n";
+    // echo "productname: " . $productname ."\n";
+    // echo "product_id: " . $product_id ."\n";
+    // echo "productdescr: " . $productdescr ."\n";
+    // echo "brandname: " . $brandname ."\n";
+    // echo "brand_id: " . $brand_id ."\n";
+    // echo "categoryname: " . $categoryname ."\n";
+    // echo "category_id: " . $category_id ."\n";
+    // echo "pkgunit: " . $pkgunit ."\n";
+    // echo "pkgunit_id: " . $pkgunit_id ."\n";
+    // echo "pkglot: " . $pkglot ."\n";
+    // echo "pkglot_id: " . $pkglot_id ."\n";
+    // echo "vproduct_prov_sku: " . $vproduct_prov_sku ."\n";
+    // echo "vproduct_final_sku: " . $vproduct_final_sku ."\n";
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        $sql = "UPDATE vendors_products SET brand=?,category=?,provisional_sku=?,product_name_descr=?,unit=?,lot=?
+                WHERE id=?";
+
+        // $teststr = "UPDATE vendors_products SET brand='$brandname',category='$categoryname',provisional_sku='$vproduct_final_sku',
+        //             product_name_descr='$productdescr',unit='$pkgunit',lot='$pkglot'
+        //             WHERE id=$vproduct_id";
+        // echo $teststr;
+
+        if ($opr->sqlUpdate($sql, 'ssssssi', 
+                $brandname, $categoryname, $vproduct_final_sku, $productdescr, $pkgunit, $pkglot, $vproduct_id)) {
+            return 0;
+        }
+        else {
+            return -2;      // unable to update vendor product
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }   
+}
+
+function saveVendorProduct($post, $files) {
+
+    extract($post);
+
+    // TODO: further validate the POST data
+
+    $data = "";
+
+    // $vproduct_id :                   => id
+    // $vproduct_domainid : 3           => domain_id
+    // $vproduct_subdomid : 8           => sub_dom_id
+    // $vproduct_vendorid : 3           => vendor_id
+    // $vproduct_brand : 1              => brand
+    // $vproduct_category : 3           => category
+    // $vproduct_tags :                 => tags
+    // $vproduct_psku : UKNDMMY         => provisional_sku
+    // $vproduct_descr : fadsd          => product_name_descr
+    // $vproduct_features :             => feature
+    // $vproduct_pkgunit : 1            => unit
+    // $vproduct_pkglot : 22            => lot
+    // $vproduct_unitsperlot : 1        => qty_per_offer
+    // $vproduct_unit_price : 0.00      => offer_price
+    //                                  => offer_date
+    // $vproduct_active : on            => active
+    //                                  => main_pix
+    //                                  => gallery_pix_id
+    // $vproduct_attributes :           => attributes
+    //                                  => serial_no
+    //                                  => ipc
+    //                                  => batch_no
+    //                                  => produced_on
+    //                                  => expires_on
+    //                                  => created_on
+    // vproduct_createdby               => created_by
+    // $vproduct_vendor : Konga
+    // $manageVendorProduct : 1
+    
+    foreach($post as $k => $v) {
+        // $$k = $v;  echo "\n$$k : $v";
+        if(!in_array($k, array( 'vproduct_id', 'manageVendorProduct', 'vproduct_vendor', 'vproduct_createdby', 
+                                'vproduct_active', 'vproduct_brand', 'vproduct_category', 'vproduct_pkgunit', 
+                                'vproduct_pkglot', 'domainid', 'subdomid')) && !is_numeric($k)){
+            // Adapt fields to the database
+            if ($k === 'vproduct_domainid')     $k = 'domain_id';
+            if ($k === 'vproduct_subdomid')     $k = 'sub_dom_id';
+            if ($k === 'vproduct_vendorid')     $k = 'vendor_id';
+            if ($k === 'vproduct_tags')         $k = 'tags';
+            if ($k === 'vproduct_psku')         $k = 'provisional_sku';
+            if ($k === 'vproduct_descr')        $k = 'product_name_descr';
+            if ($k === 'vproduct_features')     $k = 'features';
+            if ($k === 'vproduct_unitsperlot')  $k = 'qty_per_offer';
+            if ($k === 'vproduct_unit_price')   $k = 'offer_price';
+            if ($k === 'vproduct_attributes')   $k = 'attributes';
+
+            // if ($k === 'vproduct_brand')        $k = 'brand';
+            // if ($k === 'vproduct_category')     $k = 'category';
+            // if ($k === 'vproduct_pkgunit')      $k = 'unit';
+            // if ($k === 'vproduct_pkglot')       $k = 'lot';
+
+            if(empty($data)){
+                $data .= " $k='$v'";
+            }else{
+                $data .= ", $k='$v'";
+            }
+        }
+    }
+
+    // If vproduct_active field is not empty, format it for db
+    if(!empty($vproduct_active) && $vproduct_active == 'on'){
+        $data .= ", active=1";
+    }
+    else {
+        $data .= ", active=0";
+    }
+
+    if(!empty($vproduct_createdby)) {
+        $data .= ", created_by=". $vproduct_createdby;
+        $data .= ", created_on=CURRENT_DATE";
+    }    
+
+    // echo $data;
+
+    $id = '';
+
+    // Format the vproduct_id
+    if(isset($vproduct_id) && !empty($vproduct_id)) {
+        $id = $vproduct_id;
+    }
+
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // // Handle the uploaded image file
+        // if(isset($files['imgFile']) && $files['imgFile']['tmp_name'] != '') {
+        //     // foreach($files as $k => $v) { $$k = $v; echo "\n$$k:\n"; print_r($v); }
+        //     $fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['imgFile']['name'];
+        //     move_uploaded_file($_FILES['imgFile']['tmp_name'], PROFILE_PIX_PATH.$fname);
+        //     $data .= ", avatar = '$fname' ";
+        // } // else { echo "No files found"; }
+
+        // Get the brand, category, pkgunit and pkglot
+        $brand = getBrandById($vproduct_brand);
+        if (!empty($brand)) { $data .= ", brand='". $brand['name'] ."'"; }
+        else { echo "Invalid brand";
+            return -2;      // Invalid brand
+        }
+
+        $category = getCategoryById($vproduct_category);
+        if (!empty($category)) { $data .= ", category='". $category['name'] ."'"; }
+        else {
+            echo "Invalid category";
+            return -3;      // Invalid category
+        }
+
+        $pkgunit = getPkgUnitById($vproduct_pkgunit);
+        if (!empty($pkgunit)) { $data .= ", unit='". $pkgunit['label'] ."'"; }
+        else {
+            echo "Invalid pkgunit";
+            return -4;      // Invalid pkgunit
+        }
+
+        $pkglot = getPkgLotById($vproduct_pkglot);
+        if (!empty($pkglot)) { $data .= ", lot='". $pkglot['label'] ."'"; }
+        else {
+            echo "Invalid pkglot";
+            return -5;      // Invalid pkglot
+        }
+
+        // echo "INSERT INTO vendors_products SET ".$data;
+        // echo "UPDATE vendors_products SET ".$data . " WHERE id = " . $id;
+
+        try {
+            if(empty($id)){
+                $id = $opr->sqlInsert("INSERT INTO vendors_products SET $data");
+    
+                // TODO: handle cases of success and failure
+    
+            } else {
+                $opr->sqlUpdate("UPDATE vendors_products SET $data WHERE id = ?", 'i', $id);
+    
+                // TODO: handle cases of success and failure
+            }
+        }
+        catch (Exception $e) {
+            return -6;      // Exception
+        }
+        
+        $opr->close();
+
+        return $id;
+    }
+    else {
+        return -1;          // Failed to connect to database
+    } 
+}
+
+function deleteVendorProduct($id) {
+    //Connect to database
+    $opr = new DBOperation();
+    if ($opr->dbConnected()) {
+
+        // TODO: delete any ties
+        
+        if ($opr->sqlDelete('DELETE FROM vendors_products WHERE id=?', 'i', $id)) {
+
+            // TODO: delete any associated files
+
+            return 0;
+        }
+        else {
+            return -2;      // unable to delete vendor product
+        }
+        $opr->close();
+    }
+    else {
+        return -1;          // Failed to connect to database
+    }  
 }
 
 

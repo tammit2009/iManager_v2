@@ -3119,11 +3119,16 @@ function isProductNameValid(productName) {
         type: 'text',
         success: function(response) {
             // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
 
             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
+            if (response.code == 0) {
+                // Update the ID
+                $('#productname_selection_id').val(response.productid);
+
                 $("#edit_vproduct_form #vproduct_productname_valid").html(validHtml);
                 $("#edit_vproduct_form #vproduct_productname_valid").removeClass('badge-danger').addClass('badge-success');
             }
@@ -3144,11 +3149,16 @@ function isBrandNameValid(brandName) {
         type: 'text',
         success: function(response) {
             // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
 
             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
+            if (response.code == 0) {
+                // Update the ID
+                $('#brand_selection_id').val(response.brandid);
+
                 $("#edit_vproduct_form #vproduct_brand_valid").html(validHtml);
                 $("#edit_vproduct_form #vproduct_brand_valid").removeClass('badge-danger').addClass('badge-success');
             }
@@ -3170,11 +3180,16 @@ function isCategoryNameValid(categoryName) {
         type: 'text',
         success: function(response) {
             // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
 
             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
+            if (response.code == 0) {
+                // Update the ID
+                $('#category_selection_id').val(response.categoryid);
+
                 $("#edit_vproduct_form #vproduct_category_valid").html(validHtml);
                 $("#edit_vproduct_form #vproduct_category_valid").removeClass('badge-danger').addClass('badge-success');
             }
@@ -3186,29 +3201,34 @@ function isCategoryNameValid(categoryName) {
     });
 }
 
-function isProductShortDescrValid(description) {
-    $.ajax({
-        url: baseUrlMain+'/core/ajax/main/vproducts.php',
-        method: 'POST',
-        data: { "isProductShortDescrValid": 1, "productshortdescr": description},
-        type: 'text',
-        success: function(response) {
-            // alert(response);
+// function isProductShortDescrValid(description) {
+//     $.ajax({
+//         url: baseUrlMain+'/core/ajax/main/vproducts.php',
+//         method: 'POST',
+//         data: { "isProductShortDescrValid": 1, "productshortdescr": description},
+//         type: 'text',
+//         success: function(response) {
+//             alert(response);
+//             response = JSON.parse(response);
+//             // console.log(response);
 
-            var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
-            var validHtml = '<i class="fa fa-check">&nbsp;</i>';
+//             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
+//             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
-                $("#edit_vproduct_form #vproduct_description_valid").html(validHtml);
-                $("#edit_vproduct_form #vproduct_description_valid").removeClass('badge-danger').addClass('badge-success');
-            }
-            else {
-                $("#edit_vproduct_form #vproduct_description_valid").html(invalidHtml);
-                $("#edit_vproduct_form #vproduct_description_valid").removeClass('badge-success').addClass('badge-danger');
-            }
-        }
-    });
-}
+//             if (response.code == 0) {
+//                 // Update the ID
+//                 $('#productdescr_selection_id').val(response.categoryid);
+
+//                 $("#edit_vproduct_form #vproduct_description_valid").html(validHtml);
+//                 $("#edit_vproduct_form #vproduct_description_valid").removeClass('badge-danger').addClass('badge-success');
+//             }
+//             else {
+//                 $("#edit_vproduct_form #vproduct_description_valid").html(invalidHtml);
+//                 $("#edit_vproduct_form #vproduct_description_valid").removeClass('badge-success').addClass('badge-danger');
+//             }
+//         }
+//     });
+// }
             
 function isPackageUnitValid(unit) {
     $.ajax({
@@ -3218,11 +3238,16 @@ function isPackageUnitValid(unit) {
         type: 'text',
         success: function(response) {
             // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
 
             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
+            if (response.code == 0) {
+                // Update the ID
+                $('#pkgunit_selection_id').val(response.pkgunitid);
+
                 $("#edit_vproduct_form #vproduct_pkgunit_valid").html(validHtml);
                 $("#edit_vproduct_form #vproduct_pkgunit_valid").removeClass('badge-danger').addClass('badge-success');
             }
@@ -3242,11 +3267,16 @@ function isPackageLotValid(lot) {
         type: 'text',
         success: function(response) {
             // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
 
             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
+            if (response.code == 0) {
+                // Update the ID
+                $('#pkglot_selection_id').val(response.pkglotid);
+
                 $("#edit_vproduct_form #vproduct_pkglot_valid").html(validHtml);
                 $("#edit_vproduct_form #vproduct_pkglot_valid").removeClass('badge-danger').addClass('badge-success');
             }
@@ -3258,20 +3288,6 @@ function isPackageLotValid(lot) {
     });
 }
 
-function isSkuFormatValid(sku, callback) {
-
-    $.ajax({
-        url: baseUrlMain+'/core/ajax/main/vproducts.php',
-        method: 'POST',
-        data: { "isSkuFormatValid": 1, "sku": sku},
-        type: 'text',
-        success: function(response) {
-            // alert("isSkuFormatValid: " + response);
-            callback(response);
-        }
-    });    
-}
-
 function isSkuValid(sku, callback) {
 
     $.ajax({
@@ -3280,11 +3296,14 @@ function isSkuValid(sku, callback) {
         data: { "isSkuValid": 1, "sku": sku},
         type: 'text',
         success: function(response) {
-            // alert("isSkuValid: " + response);
+            // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
+
             var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
             var validHtml = '<i class="fa fa-check">&nbsp;</i>';
             
-            if (response == 1) {
+            if (response.code == 0) {
                 $("#edit_vproduct_form #vproduct_psku_valid").html(validHtml);
                 $("#edit_vproduct_form #vproduct_psku_valid").removeClass('badge-danger').addClass('badge-success');
                 callback(true);
@@ -3296,6 +3315,21 @@ function isSkuValid(sku, callback) {
             }
         }
     });  
+}
+
+function isSkuFormatValid(sku, callback) {
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        data: { "isSkuFormatValid": 1, "sku": sku},
+        type: 'text',
+        success: function(response) {
+            // alert(response);
+            response = JSON.parse(response);
+            callback(response.code);
+        }
+    });    
 }
 
 function isVendorProductValid() {
@@ -3321,8 +3355,11 @@ function isVendorProductValid() {
         },
         type: 'text',
         success: function(response) {
-            // alert("RESPONSE: " + response);
-            if (response == 1) {
+            // alert(response);
+            response = JSON.parse(response);
+            // console.log(response);
+
+            if (response.code == 0) {
                 isSkuValid(fsku, function(valid) {
                     // Create a new SKU if the found SKU is not valid
                     if (!valid) {
@@ -3337,12 +3374,12 @@ function isVendorProductValid() {
 
                         getNextSKU(form_data, function(sku) {
                             // Validate final SKU
-                            isSkuFormatValid(sku, function(valid) {
+                            isSkuFormatValid(sku, function(response_code) {
 
                                 var invalidHtml = '<i class="fa fa-times">&nbsp;</i>';
                                 var validHtml = '<i class="fa fa-check">&nbsp;</i>';
 
-                                if (valid) {
+                                if (response_code == 0) {
                                     // alert("Final SKU: " + sku);
                                     $('#vproduct_final_sku').val(sku);
                                     $('#updated_vproduct_psku').html(sku);
@@ -3430,78 +3467,280 @@ function onPkgLotInputChange() {
 }
 
 function updateUnknownVendorProduct(form_data) {
-    console.log(form_data);
+    // console.log(form_data);
 
-    // vproduct_id
-    // productname_selection
-    // productdescr_selection
-    // brand_selection
-    // category_selection
-    // pkgunit_selection
-    // pkglot_selection
+    // add the method name      
+    form_data.push({ name: 'updateUknVendorProduct', value: 1 });
 
-    // // validate inputs
-    // if ($("#role_name").val() === "") {
-    //     alert("Please enter the group name");
-    // }
-    // else {
-    //     // add the method name
-    //     form_data.push({ name: 'updateRole', value: 1 });
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/vproducts.php',
+        method: 'POST',
+        type: 'text',
+        data: form_data,
+        success: function(response) {
+            // console.log(response);
+            response = JSON.parse(response);
+            // alert("response code: " + response.code);
 
-    //     $.ajax({
-    //         url: baseUrlMain+'/core/ajax/main/roles.php',
-    //         method: 'POST',
-    //         type: 'text',
-    //         data: form_data,
-    //         success: function(response) {
-    //             // alert(response);
-    //             response = JSON.parse(response);
-    //             // alert("response code: " + response.code);
+            // Reset the form
+            $("#edit_vproduct_form").trigger("reset");                
 
-    //             // Reset the form
-    //             // document.getElementById('create_role_form').reset(); // the javascript way
-    //             $("#edit_role_form").trigger("reset");                // the jquery way
+            // Close the modal
+            $('#editUKNvproductModal').modal('toggle'); 
 
-    //             // Update any UI element
-    //             //$("#get_category").html(rsp);
+            if (response.code !== 0) {
+                // Notification using sweetalert lib
+                swalert_notify("Failed", 'Failed to update vendor product', 'error');
+            }
+            else {
+                // Prepare and send a notification
+                var status, msg;
+                status = "success";
+                msg = "Vendor product successfully updated";
 
-    //             // Close the modal
-    //             $('#editRoleModal').modal('toggle'); 
-    //             // $("#modal .close").click();             // worst case scenario
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
 
-    //             if (response.code !== 0) {
-    //                 // Notification using sweetalert lib
-    //                 swalert_notify("Failed", 'Failed to update role', 'error');
-    //             }
-    //             else {
-    //                 // Prepare and send a notification
-    //                 var status, msg;
-    //                 if (response.code === 0) {    // created
-    //                     status = "success";
-    //                     msg = "Role successfully updated";
-    //                 }
-    //                 else {                  // unknown error
-    //                     status = "warning";
-    //                     msg = "Unknown";
-    //                 }
+                // reload the page
+                window.location.reload();
+            }
+        }
+    });
+}
 
-    //                 // Notification using helper function 'flash' in utilities (redirect)
-    //                 $.ajax({
-    //                     // Send notification
-    //                     url: `${baseUrlMain}/core/security.php`,
-    //                     method: "POST",
-    //                     data: { "send_notification": 1, "status": status, "msg": msg},                
-    //                     success: function(resp) {
-    //                         // alert(resp);
-    //                     }
-    //                 });
+function initializeVendorProductDomainsSelect() {
 
-    //                 // Do a redirect to list roles
-    //                 window.location = `${baseUrlMain}/main.php?dir=roles&page=list_roles`;
-    //             }
-    //         }
-    //     });
-    // }
+    // Clear the select
+    $("#vproduct_domainid").empty();
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/domains.php',
+        method: 'POST',
+        data: {
+            get_all_vendor_domains: 1
+        },
+        datatype: 'json',
+        success: function(data) {
+            // alert(data);
+            var parsed = JSON.parse(data);
+            // console.log(parsed);
+
+            $.each(parsed, function(key, value) {
+                // console.log("key: ", key, "value: ", value);
+                $("#vproduct_domainid").append(
+                    "<option value=" + value.id +">" + value.name +"</option>"
+                );
+            });
+
+            // Set the first element as selected
+            var found_domain_id = $('#domainid').val();
+            if (found_domain_id !== '') { var domain_id = found_domain_id; }
+            else { var domain_id = parsed[0].id; }
+            
+            $("#vproduct_domainid").val(domain_id);
+
+            // Now trigger the subdom select
+            initializeVendorProductSubDomsSelect(domain_id);
+        }
+    });
+}
+
+function initializeVendorProductSubDomsSelect(domainId) {
+
+    // Clear the select
+    $("#vproduct_subdomid").empty();
+
+    // Set the hidden domainid field
+    $("#domainid").val(domainId);
+
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/subdomains.php',
+        method: 'POST',
+        data: {
+            get_vendor_subdoms_by_domain: 1,
+            domainid: domainId
+        },
+        datatype: 'json',
+        success: function(data) {
+            // alert(data);
+            var parsed = JSON.parse(data);
+            // console.log(parsed);
+
+            var subdom_id = $('#subdomid').val();
+            var subdom_selected;
+
+            $.each(parsed, function(key, value) {
+                // console.log("key: ", key, "value: ", value.status_label);
+                $("#vproduct_subdomid").append(
+                    "<option value=" + value.id +">" + value.name + "</option>"
+                ); 
+                if (subdom_id == value.id) { subdom_selected = value; }         
+            });
+
+            if (!subdom_selected) {
+                subdom_selected = parsed[0];  
+            }
+            
+            // Set the first element as selected
+            $("#vproduct_subdomid").val(subdom_selected.id);
+
+            // Set the vendor name and id
+            $("#vproduct_vendor").val(subdom_selected.org_name);
+            $("#vproduct_vendorid").val(subdom_selected.org_id);
+        }
+    })
+}
+
+function domainsChangeVendorProductUpdateSubDomSelect( value ) {
+
+    // Clear the hidden subdomid field
+    $("#subdomid").val('');
+
+    // Get the vendor's domain
+    $.ajax({
+        url: baseUrlMain+'/core/ajax/main/domains.php',
+        method: 'POST',
+        data: {
+            get_domain_by_id: 1,
+            domainid: value
+        },
+        datatype: 'json',
+        success: function(data) {
+            // alert(data);
+            var parsed = JSON.parse(data);
+            // console.log(parsed);
+
+            // Now trigger the subdom select
+            initializeVendorProductSubDomsSelect(parsed.id);
+        }
+    })  
+}
+
+function  manageVendorProduct(form_data) {
+
+    // Print the FormData
+    // for (var pair of form_data.entries()) { console.log(pair[0]+ ', ' + pair[1]); }
+
+    // Validate inputs 
+    if ($("#vproduct_descr").val() === "") {  
+        alert("Vendor product description is Required");
+    }
+    else if ($("#vproduct_psku").val() === "") {  
+        alert("Valid SKU is Required");
+    }
+    else {
+        // start_load();
+
+        // add the method name
+        form_data.append('manageVendorProduct', 1);
+
+        $.ajax({
+            url: baseUrlMain+'/core/ajax/main/vproducts.php',  
+            method: 'POST',                  // "type: 'POST'" seems to be used as well          
+            cache: false,  
+            contentType: false,              // content type used when sending data to the server. Default is: "application/x-www-form-urlencoded"
+            processData: false,
+            // dataType: 'text',             // type of data expected back: json|xml|script|html
+            type: 'POST',
+            data: form_data,
+            success: function(response) {
+                // end_load();
+                // console.log(response);
+                response = JSON.parse(response);
+                // alert("code: " + response.code + ", message: " + response.message);
+
+                // Reset the form
+                $("#manage_vproduct_form").trigger("reset");                
+
+                // Prepare and send a notification
+                var status, msg;
+
+                if (response.code == 0) {
+                    status = "success";
+                    msg = "Vendor product successfully saved";
+
+                    // Notification using helper function 'flash' in utilities (redirect)
+                    $.ajax({
+                        // Send notification
+                        url: `${baseUrlMain}/core/security.php`,
+                        method: "POST",
+                        data: { "send_notification": 1, "status": status, "msg": msg},                
+                        success: function(resp) {
+                            // alert(resp);
+                        }
+                    });
+
+                    // Do a redirect to list roles
+                    window.location = `${baseUrlMain}/main.php?dir=vproducts&page=list_vproducts`;
+                }
+                else {
+                    status = "error";
+                    msg = response.message;
+
+                    // Notification using sweetalert lib
+                    swalert_notify(status, msg, status);
+                }
+            }
+        });
+    }
+}
+
+function deleteVendorProduct(id) {
+
+    start_load()
+
+    $.ajax({
+    	url:  baseUrlMain+'/core/ajax/main/vproducts.php?action=delete_vproduct',
+    	method:'POST',
+    	data:{id: id},
+    	success:function(response){
+            end_load()
+            // alert(response);
+            response = JSON.parse(response);
+            // alert("code: " + response.code + ", message: " + response.message);
+
+            // Prepare and send a notification
+            var status, msg;
+
+            if (response.code == 0) {
+                status = "success";
+                msg = "Vendor product successfully deleted";
+
+                // Notification using helper function 'flash' in utilities (redirect)
+                $.ajax({
+                    // Send notification
+                    url: `${baseUrlMain}/core/security.php`,
+                    method: "POST",
+                    data: { "send_notification": 1, "status": status, "msg": msg},                
+                    success: function(resp) {
+                        // alert(resp);
+                    }
+                });
+
+                // reload the page
+                window.location.reload();
+            }
+            else {
+                status = "error";
+                msg = response.message;
+
+                // Notification using sweetalert lib
+                swalert_notify(status, msg, status);
+
+                setTimeout(function(){
+                    window.location.reload();
+                }, 2000)
+            }
+    	}
+    });
 }
 
 

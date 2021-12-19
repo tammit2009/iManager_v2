@@ -526,6 +526,7 @@ $(document).ready(function() {
     $('#pkglot_selection_list').DataTable();
 
     $("#product_selection_list").on("click", ".select_vproduct_product", function() {
+
         var productId = $(this).attr('data-id');
         var productName = $(this).attr('data-name');
         var productDescr = $(this).attr('data-descr');
@@ -536,10 +537,12 @@ $(document).ready(function() {
         $('#productname_selection').val(productName);
         $('#productname_selection_id').val(productId);
         $('#productdescr_selection').val(productDescr);
-        // $('#vproduct_final_sku').val(productSku);
-
+        
         $('#updated_vproduct_productname').html(productName);
         $('#updated_vproduct_description').html(productDescr);
+
+        // Set the existing product's sku (disabled to test generation of new SKU)
+        // $('#vproduct_final_sku').val(productSku);
         // $('#updated_vproduct_psku').html(productSku);
         
         isSkuValid(productSku, function() {});

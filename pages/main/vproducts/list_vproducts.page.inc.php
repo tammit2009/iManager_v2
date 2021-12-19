@@ -21,7 +21,7 @@
                 <a href="./main.php?dir=vproducts&page=import_vproducts" class="btn btn-sm btn-default btn-flat border-info p-2 mr-2">
                     <i class="fa fa-folder"></i> Import Products
                 </a>
-                <a href="./main.php?dir=vproducts&page=add_product" class="btn btn-sm btn-default btn-flat border-info p-2">
+                <a href="./main.php?dir=vproducts&page=add_vproduct" class="btn btn-sm btn-default btn-flat border-info p-2">
                     <i class="fa fa-plus"></i> Add Product
                 </a>
             </div>
@@ -91,7 +91,7 @@
                             <!-- <td class="text-left"><b></?php echo $row['category']; ?></b></td> -->
                             <td class="text-center"><b><?php echo $row['provisional_sku']; ?></b></td>
                             <td class="text-left"><b><?php echo $row['product_name_descr']; ?></b></td>
-                            <td class="text-left"><b><?php echo $row['feature']; ?></b></td>
+                            <td class="text-left"><b><?php echo $row['features']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['unit']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['lot']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['qty_per_offer']; ?></b></td>
@@ -169,7 +169,7 @@
                             <!-- <td class="text-left"><b></?php echo $row['category']; ?></b></td> -->
                             <td class="text-center"><b><?php echo $row['provisional_sku']; ?></b></td>
                             <td class="text-left"><b><?php echo $row['product_name_descr']; ?></b></td>
-                            <td class="text-left"><b><?php echo $row['feature']; ?></b></td>
+                            <td class="text-left"><b><?php echo $row['features']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['unit']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['lot']; ?></b></td>
                             <td class="text-center"><b><?php echo $row['qty_per_offer']; ?></b></td>
@@ -234,15 +234,16 @@ $(document).ready(function(){
     // })
 
     // View Vendor Product
-    $('.view_vproduct').click(function(){
+    $('#listVProducts').delegate('.view_vproduct', 'click', function(e) {
         // pull in the html view page with uni_modal
-		// uni_modal("<i class='fa fa-id-card'></i> User Details", "main/users/inc/view_user.php?id=" + $(this).attr('data-id'));
-	});
-
-    // Delete Product
-    $('#listVProducts').delegate('.delete_vproduct', 'click', function(e) {
-        doConfirm("Are you sure to delete this product?", "deleteVProduct", [ $(this).attr('data-id') ])
+		uni_modal("<i class='fa fa-id-card'></i> Vendor Product Details", "main/vproducts/inc/view_vproduct.php?id=" + $(this).attr('data-id'));
     })
+
+    // Delete Vendor Product
+    $('#listVProducts').delegate('.delete_vproduct', 'click', function(e) {
+        doConfirm("Are you sure to delete this product?", "deleteVendorProduct", [ $(this).attr('data-id') ])
+    })
+    
 });
 
 </script>
